@@ -20,3 +20,8 @@ class GameCLI(cmd.Cmd):
 
     def do_print(self, args):
         self.view.print()
+
+
+    def do_start(self, args):
+        self.model.initilaise()
+        self.view.initialise()
