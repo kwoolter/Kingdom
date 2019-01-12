@@ -19,9 +19,10 @@ class GameCLI(cmd.Cmd):
         self.cmdloop()
 
     def do_print(self, args):
+        """Print the Game View"""
         self.view.print()
 
-
     def do_start(self, args):
-        self.model.initilaise()
+        """Start the Game"""
+        self.model.initialise("Yellow River Kingdom")
         self.view.initialise()
