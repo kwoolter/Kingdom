@@ -83,6 +83,7 @@ class Season():
     RICE_STOLEN = "rice stolen"
     RICE_FLOODED = "rice flooded"
     RICE_EATEN = "rice eaten"
+    RICE_PLANTED = "rice planted"
 
     def __init__(self, name: str, year: int):
         self.name = name
@@ -201,6 +202,7 @@ class Season():
         if self.name == Season.WINTER or fields == 0 or rice_planted < 1:
             rice_grown = 0
         elif self.name == Season.GROWING:
+            self.food_changes[Season.RICE_PLANTED] = rice_planted * -1
             if rice_planted > 1000:
                 rice_planted = 1000
             rice_grown = rice_planted * (fields - 10)/fields
