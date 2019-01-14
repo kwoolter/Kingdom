@@ -42,7 +42,7 @@ and how much planted rice was lost (`G`).
 
 <img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode3.PNG" alt="code2">
 
-##Code
+## Code
 If you want to delve deeper into the BBC Basic Code here are some helpers.
 
 ### Variables
@@ -64,7 +64,7 @@ Variable | Purpose
 `TF`|Stored food taken by thieves
 `VF`|Villages caught in the floods
 
-###Procedures
+### Procedures
 
 Procedure | Line | Purpose
 ---|----|----------------------
