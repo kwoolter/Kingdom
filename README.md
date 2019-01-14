@@ -16,8 +16,8 @@ To get the game rules and calculations I looked at the BBC Basic source code by 
 
 Here is an example that shows the procedure used to calculate ...
 
-<img height=300 width=370 src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/SourceCode1.PNG" alt="code1">
-<img height=300 width=370 src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode2.PNG" alt="code2">
+<img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode1.PNG" alt="code1">
+<img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode2.PNG" alt="code2">
 
 
 
