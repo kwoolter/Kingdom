@@ -83,7 +83,7 @@ class Season():
     RICE_STOLEN = "rice stolen"
     RICE_FLOODED = "rice flooded"
     RICE_EATEN = "rice eaten"
-    RICE_PLANTED = "rice planted"
+
 
     def __init__(self, name: str, year: int):
         self.name = name
@@ -120,8 +120,30 @@ class Season():
 
     def calculate(self, kingdom, dyke: int, fields: int, defend: int, rice_planted: int = 0):
 
+        self.kingdom = kingdom
+        self.dyke = dyke
+        self.fields = fields
+        self.defend = defend
+        self.rice_planted = rice_planted
 
-        # Thief attack calcs
+        if random.uniform(0,5) > 5:
+            self.calculate_attack()
+            self.calculate_flood()
+        else:
+            self.calculate_flood()
+            self.calculate_attack()
+
+        self.calculated_season_end()
+
+        # Wrap up
+        self.calculated = True
+        print(self.population_changes)
+        print(self.food_changes)
+        print("Rice planted out in the fields={0}".format(self.rice_planted))
+
+    # Thief attack calcs
+    def calculate_attack(self):
+
         attack = random.randint(0,10)
         do_attack = True
 
@@ -131,7 +153,7 @@ class Season():
             if attack < 5:
                 do_attack = False
             else:
-                attack_index = 200 + random.randint(0,70) - defend
+                attack_index = 200 + random.randint(0,70) - self.defend
 
         # Season Growing
         elif self.name == Season.GROWING:
@@ -139,7 +161,7 @@ class Season():
             if attack < 2:
                 do_attack = False
             else:
-                attack_index = 30 + random.randint(0, 200) - defend
+                attack_index = 30 + random.randint(0, 200) - self.defend
 
         # Season Harvest
         elif self.name == Season.HARVEST:
@@ -147,77 +169,97 @@ class Season():
             if attack < 6:
                 do_attack = False
             else:
-                attack_index = random.randint(0, 400) - defend
+                attack_index = random.randint(0, 400) - self.defend
 
 
         if do_attack is True:
             attack_index = max(0, attack_index)
 
-            thief_deaths = int(defend * attack_index / 400)
+            thief_deaths = int(self.defend * attack_index / 400)
             self.population_changes[Season.DEATH_KILLED_BY_THIEVES] = thief_deaths * -1
 
-            stolen_food = attack_index * kingdom.total_food / 729 + random.randint(0, int(2000 - defend + thief_deaths)) / 10
+            stolen_food = attack_index * self.kingdom.total_food / 729 + random.randint(0, int(2000 - self.defend + thief_deaths)) / 10
             stolen_food = max(0, stolen_food)
             if stolen_food > 2000:
                 stolen_food = 1900 + random.randint(0,200)
 
             self.food_changes[Season.RICE_STOLEN] = int(stolen_food) * -1
 
-        # Flood calcs
+    # Flood calcs
+    def calculate_flood(self):
+
         # Season Winter
         if self.name == Season.WINTER:
-
-            flood_index = random.randint(0, 330) / (dyke + 1)
+            flood_index = random.randint(0, 330) / (self.dyke + 1)
 
         # Season Growing
         elif self.name == Season.GROWING:
-
-            flood_index = (random.randint(0, 100) + 60) / (dyke + 1)
+            flood_index = (random.randint(0, 100) + 60) / (self.dyke + 1)
 
         # Season Harvest
         elif self.name == Season.HARVEST:
-
             flood_index = 0
-            rice_planted = 18 * (11 + random.uniform(0,3)) * (0.05 - 1 / fields) * rice_planted
-
 
         if flood_index >= 1:
 
-            villages_flooded = random.randint(0, len(kingdom.villages))
+            #villages_flooded = random.randint(0, len(self.kingdom.villages))
             villages_flooded = 0
 
             if flood_index < 2:
-                flood_index = random.uniform(0,2)
+                flood_index = random.uniform(0, 2)
             else:
-                flood_index = random.uniform(0,4)
+                flood_index = random.uniform(0, 4)
 
-            dyke_survivors = int((dyke / 10) * (10 - flood_index))
-            field_survivors = int((fields / 10) * (10 - flood_index))
-            defend_survivors = int((defend / 6) * (6 - villages_flooded))
+            # Calculate flood impact on population
+            dyke_survivors = int((self.dyke / 10) * (10 - flood_index))
+            field_survivors = int((self.fields / 10) * (10 - flood_index))
+            defend_survivors = int((self.defend / 6) * (6 - villages_flooded))
+            self.population_changes[Season.DEATH_BY_FLOODING] = (self.kingdom.population - dyke_survivors - field_survivors - defend_survivors) * -1
 
-            self.population_changes[Season.DEATH_BY_FLOODING] = (kingdom.population - dyke_survivors - field_survivors - defend_survivors) * -1
-            self.food_changes[Season.RICE_FLOODED] = int(kingdom.total_food * villages_flooded / 6) * -1
+            # Calculate flood impact on stored rice
+            self.food_changes[Season.RICE_FLOODED] = int(self.kingdom.total_food * villages_flooded / 6) * -1
 
-        # Food calcs
-        if self.name == Season.WINTER or fields == 0 or rice_planted < 1:
-            rice_grown = 0
+            # Calculate flood impact on planted rice
+            # Season Growing
+            if self.name == Season.GROWING:
+                self.rice_planted *= (20 - flood_index) / 20
+
+            # Season Harvest
+            elif self.name == Season.HARVEST:
+                self.rice_planted = (10 - flood_index) / 10
+
+            self.rice_planted = int(self.rice_planted)
+
+    # Food, Births and Deaths
+    def calculated_season_end(self):
+
+        # Rice planting and growing calcs
+
+        # No rice planted if it is winter, or u have no one working
+        if self.name == Season.WINTER or self.fields == 0 or self.rice_planted < 1:
+            self.rice_planted = 0
+        # Calculate how much rice will grow based on resources assigned
         elif self.name == Season.GROWING:
-            self.food_changes[Season.RICE_PLANTED] = rice_planted * -1
-            if rice_planted > 1000:
-                rice_planted = 1000
-            rice_grown = rice_planted * (fields - 10)/fields
+            if self.rice_planted > 1000:
+                self.rice_planted = 1000
+            self.rice_planted *= (self.fields - 10) / self.fields
+        # Calculate how much rice is harvested based on how much planted and resources
         elif self.name == Season.HARVEST:
-            rice_grown = 18 * (11+random.uniform(0,3)) * (0.05 - 1/fields) * rice_planted
+            rice_grown = 18 * (11 + random.uniform(0, 3)) * (0.05 - 1 / self.fields) * self.rice_planted
+            self.rice_planted = 0
+            self.food_changes[Season.RICE_GROWN] = int(rice_grown)
 
-        self.food_changes[Season.RICE_GROWN] = int(rice_grown)
+        self.rice_planted = int(self.rice_planted)
 
         # Starvation calcs
         starvation_deaths = 0
-        new_population = kingdom.population + self.population_change
-        new_total_food = kingdom.total_food + self.food_change
+        new_population = self.kingdom.population + self.population_change
+        new_total_food = self.kingdom.total_food + self.food_change
 
+        # Check we still have people alive...
         if new_population > 0:
-            t = new_total_food/new_population
+            # Get ratio of food to people and tweak it to curb people's appetites
+            t = new_total_food / new_population
             if t > 5:
                 t = 4
             elif t < 2:
@@ -225,27 +267,24 @@ class Season():
             elif t > 4:
                 t = 3.5
             else:
-                starvation_deaths = int(kingdom.population * (7 - t) / 7)
-                t=3
+                starvation_deaths = int(self.kingdom.population * (7 - t) / 7)
+                t = 3
 
+            # Record how many people starved
             self.population_changes[Season.DEATH_STARVATION] = starvation_deaths * -1
+
+            # Calculate how much food was eaten
             new_population -= starvation_deaths
-            rice_eaten = int(new_population * t - starvation_deaths*t/2)
+            rice_eaten = int(new_population * t - starvation_deaths * t / 2)
 
             self.food_changes[Season.RICE_EATEN] = rice_eaten * -1
 
-            # Thief add calc
-            if new_population < 200 and random.randint(0,3) == 1:
+            # If population is running low see if any thieves want to join?
+            if new_population < 200 and random.randint(0, 3) == 1:
                 self.population_changes[Season.ADD_THIEVES] = 50 + random.randint(1, 100)
 
             # Birth calcs
             self.population_changes[Season.ADD_BIRTHS] = int(new_population * 0.045)
-
-        # Wrap up
-        self.calculated = True
-        print(self.population_changes)
-        print(self.food_changes)
-
 
 class Kingdom():
     VILLAGES = 3
@@ -289,23 +328,42 @@ class Kingdom():
 
 
     def do_season(self, dyke: int = 0, fields: int = 0, defend: int = 0, rice_planted: int = 0):
+
+        if rice_planted > self.total_food:
+            raise Exception("Trying to plant {0} food which is more than {1} in the store!".format(rice_planted, self.total_food))
+
+        if dyke + fields + defend > self.population:
+            raise Exception("Trying to assign {0} people when you only have {1}!".format(dyke + fields + defend, self.population))
+
+        # Store season against the current year
+        self.years[self.year][self.current_season.name] = self.current_season
+
+        # No rice planted in winter
         if self.current_season.name == Season.WINTER:
             self.rice_planted = 0
-        # Remeber how much rice we planted in the growing season
+        # Remember how much rice we planted in the growing season and deduct from total food
         elif self.current_season.name == Season.GROWING:
             self.rice_planted = rice_planted
+            self._food -= rice_planted
 
+        # See what happens in this season
         self.current_season.calculate(self, dyke, fields, defend, self.rice_planted)
+
+        # Update how much rice remains planted after the season
+        self.rice_planted = self.current_season.rice_planted
+
+        # Make changes to population and food supplies
         self._population += self.current_season.population_change
         self._food += self.current_season.food_change
 
+        # Move to the next season
         self.current_season = Season(self.current_season.get_next_season_name(), self.year)
 
+        # If we got back to Winter we have started a new year!
         if self.current_season.name == Season.WINTER:
             self.year += 1
             self.years[self.year] = {}
 
-        self.years[self.year][self.current_season.name] = self.current_season
 
     def __str__(self):
         _str = "The Kingdom of {0}: year={1}, season={2}, population={3}, food={4}".format(self.name, self.year,

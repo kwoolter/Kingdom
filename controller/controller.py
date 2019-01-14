@@ -15,7 +15,6 @@ class GameCLI(cmd.Cmd):
         self.model = model.Game("Kingdom")
         self.view = view.TextView(self.model)
 
-
     def run(self):
         self.cmdloop()
 
@@ -40,17 +39,22 @@ class GameCLI(cmd.Cmd):
 
     def do_play(self,args):
         """Play the next round of the game"""
+
+        print("{0} Season of Year {1}.  How many people to:-".format(self.model.kingdom.current_season.name, self.model.kingdom.year))
         dyke = int(input("Defend the dyke?"))
         fields = int(input("Work in  the fields?"))
 
+        # Auto calculate number of defenders
         defend = self.model.kingdom.population - dyke - fields
         print("Defend the villages? {0}".format(defend))
 
+        # Extra input for the growing season
         if self.model.kingdom.current_season.name == model.Season.GROWING:
             rice_planted = int(input("Baskets of rice to plant?"))
         else:
             rice_planted = 0
 
+        # Run the model with the inputted resources
         self.model.play(dyke, fields, defend, rice_planted)
 
         event = self.model.get_next_event()
@@ -58,6 +62,7 @@ class GameCLI(cmd.Cmd):
             print(event)
             event = self.model.get_next_event()
 
+        # Print the current state
         self.view.print()
 
 

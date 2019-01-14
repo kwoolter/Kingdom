@@ -12,7 +12,13 @@ Still work in progress as no graphics yet!
 * Type `start` to get going
 * Type `play` to start your next turn
 
-## BBC Version
+
+## Python Version
+
+The Python re-write is radically different in structure to the original!
+
+
+## BBC Micro Version
 
 You can play the original "Yellow River Kingdom" here:-
 
@@ -26,9 +32,13 @@ and how many people died from starvation (`ST`):
 
 <img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode1.PNG" alt="code1">
 
+
 Here is the code to calculate how many people the thieves killed (`TD`) and how much rice they stole (`TF`):
 
 <img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode2.PNG" alt="code2">
 
+Here is the code to calculate how many people were killed in the flood (`FD`), and how much stored rice was lost(`FF`) 
+and how much planted rice was lost (`G`).
 
+<img src="https://github.com/kwoolter/Kingdom/blob/master/BBC%20Basic/SourceCode3.PNG" alt="code2">
 
