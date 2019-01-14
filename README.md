@@ -62,6 +62,7 @@ Variable | Purpose
 `ST`|Starvation deaths
 `FF`|Stored food lost if floods
 `TF`|Stored food taken by thieves
+`VF`|Villages caught in the floods
 
 ###Procedures
 
