@@ -5,6 +5,7 @@ import model
 
 
 class TextView():
+
     def __init__(self, model: model.Game):
         self.model = model
 
@@ -14,8 +15,8 @@ class TextView():
     def print_census(self):
         kingdom = self.model.kingdom
 
-        print("\n{0:^50}".format("Census Results"))
-        print("\nAt the start of the {0} season in year {1} of your reign this is the situation.".format(
+        type("\n{0:^50}\n".format("Census Results"))
+        type("\nAt the start of the {0} season in year {1} of your reign this is the situation.\n".format(
             kingdom.current_season.name, kingdom.year))
         print("\nAllowing for births and deaths the population is {0}".format(kingdom.population))
         print("\nThere are {0} baskets of rice in the village stores.".format(kingdom.total_food))
@@ -32,7 +33,7 @@ class SeasonTextView():
 
     def print(self):
 
-        print("\n{0:^50}".format("Village Leader's Report"))
+        type("\n{0:^50}\n".format("Village Leader's Report"))
 
         kingdom = self.season.kingdom
 
@@ -63,7 +64,7 @@ class SeasonTextView():
             print("\n{0:^50}".format(msg))
 
         # Print status
-        print("\nIn the {0} season of year {1} of your reign, the kingdom has suffered these losses:\n".format(
+        type("\nIn the {0} season of year {1} of your reign, the kingdom has suffered these losses:\n".format(
             self.season.name, self.season.year))
         print("Deaths from floods: {0}".format(abs(self.season.population_changes[model.Season.DEATH_BY_FLOODING])))
         print("Deaths from the attacks: {0}".format(
@@ -76,7 +77,7 @@ class SeasonTextView():
 
         print("")
 
-def type(text: str, wait=0.1):
+def type(text: str, wait=0.05):
     for i in range(0, len(text)):
         sys.stdout.write(text[i])
         sys.stdout.flush()

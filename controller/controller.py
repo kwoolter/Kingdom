@@ -40,40 +40,67 @@ class GameCLI(cmd.Cmd):
     def do_play(self,args):
         """Play the next round of the game"""
 
-        if self.model.state == model.Game.STATE_GAME_OVER:
-            raise Exception("Can't plat as Game is Over!")
+        try:
 
+            if self.model.state == model.Game.STATE_GAME_OVER:
+                raise Exception("Can't play as Game is Over!")
 
-        # Print the current state
-        self.view.print_census()
+            # Print the current state
+            self.view.print_census()
 
-        print("\nHow many people should:")
-        dyke = int(input("Defend the dyke?"))
-        fields = int(input("Work in  the fields?"))
+            # Get the next round of decisions
+            print("\nHow many people should:")
 
-        # Auto calculate number of defenders
-        defend = self.model.kingdom.population - dyke - fields
-        print("Defend the villages? {0}".format(defend))
+            loop = True
+            while loop is True:
+                dyke = int(input("Defend the dyke?"))
+                if dyke <= self.model.kingdom.population:
+                    loop = False
+                else:
+                    print("You don't have enough people!")
 
-        # Extra input for the growing season
-        if self.model.kingdom.current_season.name == model.Season.GROWING:
-            rice_planted = int(input("Baskets of rice to plant?"))
-        else:
-            rice_planted = 0
+            loop = True
+            while loop is True:
+                fields = int(input("Work in  the fields?"))
+                if (self.model.kingdom.population - dyke - fields) >= 0:
+                    loop = False
+                else:
+                    print("You don't have enough people!")
 
-        # Run the model with the inputted resources
-        self.model.play(dyke, fields, defend, rice_planted)
+            # Auto calculate number of defenders
+            defend = self.model.kingdom.population - dyke - fields
+            print("Defend the villages? {0}".format(defend))
 
-        self.view.print_season()
+            # Extra input for the growing season
+            if self.model.kingdom.current_season.name == model.Season.GROWING:
+                loop = True
+                while loop is True:
+                    rice_planted = int(input("Baskets of rice to plant?"))
+                    if rice_planted <= self.model.kingdom.total_food:
+                        loop = False
+                    else:
+                        print("You don't have that much food to plant!")
+            else:
+                rice_planted = 0
 
-        # Print any events that got raised
-        event = self.model.get_next_event()
-        if event is not None:
-            print("Game event(s)...")
-        while event is not None:
-            print("\t"+str(event))
+            # Run the model with the inputted resources
+            self.model.play(dyke, fields, defend, rice_planted)
+
+            # Print the season results
+            self.view.print_season()
+
+            # Print any events that got raised
             event = self.model.get_next_event()
+            if event is not None:
+                print("Game event(s)...")
+            while event is not None:
+                print("\t"+str(event))
+                event = self.model.get_next_event()
 
+            print("")
+
+        except Exception as err:
+            print(str(err))
 
 def pick(object_type: str, objects: list, auto_pick: bool = False):
     '''pick() -  Function to present a menu to pick an object from a list of objects
