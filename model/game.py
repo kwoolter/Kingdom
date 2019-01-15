@@ -1,12 +1,45 @@
 import collections
 import random
 
+class Event():
+    # Event Types
+    DEFAULT = "default"
+    STATE = "state"
+    GAME = "game"
+
+    def __init__(self, name: str, description: str = None, type: str = DEFAULT):
+        self.name = name
+        self.description = description
+        self.type = type
+
+    def __str__(self):
+        return "{0}:{1} ({2})".format(self.name, self.description, self.type)
+
+
+class EventQueue():
+    def __init__(self):
+        self.events = collections.deque()
+
+    def add_event(self, new_event: Event):
+        self.events.append(new_event)
+
+    def pop_event(self):
+        return self.events.pop()
+
+    def size(self):
+        return len(self.events)
+
+    def print(self):
+        for event in self.events:
+            print(event)
+
 
 class Game():
     # States
     STATE_LOADED = "loaded"
     STATE_INITIALISED = "initialised"
-    START_RUNNING = "running"
+    STATE_RUNNING = "running"
+    STATE_GAME_OVER = "Game Over"
 
     # Events
     EVENT_TICK = "Tick"
@@ -22,7 +55,7 @@ class Game():
     def initialise(self, kingdom_name: str, player_name: str = "John Doe"):
         self.state = Game.STATE_INITIALISED
         self.kingdom = Kingdom(kingdom_name)
-        self.kingdom.initialise()
+        self.kingdom.initialise(self.events)
         self.player_name = player_name
 
     @property
@@ -65,6 +98,9 @@ class Game():
             raise Exception("Can't play the game in current state {0}".format(self.state))
 
         self.kingdom.do_season(dyke, fields,defend, rice_planted)
+
+        if self.kingdom.population <=0 or self.kingdom.total_food <=0:
+            self.state = Game.STATE_GAME_OVER
 
 
 class Season():
@@ -121,6 +157,7 @@ class Season():
     def calculate(self, kingdom, dyke: int, fields: int, defend: int, rice_planted: int = 0):
 
         self.kingdom = kingdom
+        self.year = kingdom.year
         self.dyke = dyke
         self.fields = fields
         self.defend = defend
@@ -137,9 +174,9 @@ class Season():
 
         # Wrap up
         self.calculated = True
-        print(self.population_changes)
-        print(self.food_changes)
-        print("Rice planted out in the fields={0}".format(self.rice_planted))
+        # print(self.population_changes)
+        # print(self.food_changes)
+        # print("Rice planted out in the fields={0}".format(self.rice_planted))
 
     # Thief attack calcs
     def calculate_attack(self):
@@ -281,12 +318,27 @@ class Season():
 
             # If population is running low see if any thieves want to join?
             if new_population < 200 and random.randint(0, 3) == 1:
-                self.population_changes[Season.ADD_THIEVES] = 50 + random.randint(1, 100)
+                new_villagers = 50 + random.randint(1, 100)
+                self.population_changes[Season.ADD_THIEVES] = new_villagers
+                self.kingdom.add_event(Event("THIEVES",
+                                            "{0} thieves have joined the villages".format(new_villagers),
+                                            Event.GAME))
 
             # Birth calcs
-            self.population_changes[Season.ADD_BIRTHS] = int(new_population * 0.045)
+            new_villagers = int(new_population * 0.045)
+            self.population_changes[Season.ADD_BIRTHS] = new_villagers
+            self.kingdom.add_event(Event("BIRTHS",
+                                        "{0} new births in villages".format(new_villagers),
+                                        Event.GAME))
+
+        else:
+            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER,"All villagers have died",Event.GAME))
+
+        if new_total_food <=0:
+            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "There is no food left!", Event.GAME))
 
 class Kingdom():
+
     VILLAGES = 3
     INITIAL_SEASON = Season.WINTER
 
@@ -295,10 +347,13 @@ class Kingdom():
         self.villages = None
         self.year = 0
         self.years = {}
+        self.current_season = None
+        self.previous_season = None
 
-    def initialise(self):
+    def initialise(self, event_queue : EventQueue):
+        self._events = event_queue
         self.year = 1
-        self.current_season = Season(Kingdom.INITIAL_SEASON, self.year)
+        self.current_season = self.previous_season = Season(Kingdom.INITIAL_SEASON, self.year)
         self._population = 300 + random.randint(0, 100)
         self._food = 5000 + random.randint(0, 2000)
 
@@ -325,6 +380,9 @@ class Kingdom():
     @total_food.setter
     def food(self, new : int):
         self._food = new
+
+    def add_event(self, new_event : Event):
+        self._events.add_event(new_event)
 
 
     def do_season(self, dyke: int = 0, fields: int = 0, defend: int = 0, rice_planted: int = 0):
@@ -357,6 +415,7 @@ class Kingdom():
         self._food += self.current_season.food_change
 
         # Move to the next season
+        self.previous_season = self.current_season
         self.current_season = Season(self.current_season.get_next_season_name(), self.year)
 
         # If we got back to Winter we have started a new year!
@@ -397,35 +456,3 @@ class Village():
         self.villagers = villagers
         self.rice = rice
 
-
-class Event():
-    # Event Types
-    DEFAULT = "default"
-    STATE = "state"
-    GAME = "game"
-
-    def __init__(self, name: str, description: str = None, type: str = DEFAULT):
-        self.name = name
-        self.description = description
-        self.type = type
-
-    def __str__(self):
-        return "{0}:{1} ({2})".format(self.name, self.description, self.type)
-
-
-class EventQueue():
-    def __init__(self):
-        self.events = collections.deque()
-
-    def add_event(self, new_event: Event):
-        self.events.append(new_event)
-
-    def pop_event(self):
-        return self.events.pop()
-
-    def size(self):
-        return len(self.events)
-
-    def print(self):
-        for event in self.events:
-            print(event)

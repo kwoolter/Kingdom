@@ -34,13 +34,18 @@ class GameCLI(cmd.Cmd):
             print(event)
             event = self.model.get_next_event()
 
-        self.view.print()
-
 
     def do_play(self,args):
         """Play the next round of the game"""
 
-        print("{0} Season of Year {1}.  How many people to:-".format(self.model.kingdom.current_season.name, self.model.kingdom.year))
+        if self.model.state == model.Game.STATE_GAME_OVER:
+            raise Exception("Can't plat as Game is Over!")
+
+
+        # Print the current state
+        self.view.print_census()
+
+        print("\nHow many people should:")
         dyke = int(input("Defend the dyke?"))
         fields = int(input("Work in  the fields?"))
 
@@ -62,8 +67,9 @@ class GameCLI(cmd.Cmd):
             print(event)
             event = self.model.get_next_event()
 
-        # Print the current state
-        self.view.print()
+        self.view.print_season()
+
+
 
 
 def pick(object_type: str, objects: list, auto_pick: bool = False):
