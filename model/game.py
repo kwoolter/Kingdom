@@ -321,18 +321,18 @@ class Season():
                 new_villagers = 50 + random.randint(1, 100)
                 self.population_changes[Season.ADD_THIEVES] = new_villagers
                 self.kingdom.add_event(Event("THIEVES",
-                                            "{0} thieves have joined the villages".format(new_villagers),
+                                            "{0} thieves have joined the villages.".format(new_villagers),
                                             Event.GAME))
 
             # Birth calcs
             new_villagers = int(new_population * 0.045)
             self.population_changes[Season.ADD_BIRTHS] = new_villagers
             self.kingdom.add_event(Event("BIRTHS",
-                                        "{0} new births in villages".format(new_villagers),
+                                        "{0} new births in the villages.".format(new_villagers),
                                         Event.GAME))
 
         else:
-            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER,"All villagers have died",Event.GAME))
+            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER,"All villagers have died!",Event.GAME))
 
         if new_total_food <=0:
             self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "There is no food left!", Event.GAME))

@@ -30,8 +30,10 @@ class GameCLI(cmd.Cmd):
         self.view.initialise()
 
         event = self.model.get_next_event()
+        if event is not None:
+            print("Game event(s)...")
         while event is not None:
-            print(event)
+            print("\t"+str(event))
             event = self.model.get_next_event()
 
 
@@ -62,14 +64,15 @@ class GameCLI(cmd.Cmd):
         # Run the model with the inputted resources
         self.model.play(dyke, fields, defend, rice_planted)
 
-        event = self.model.get_next_event()
-        while event is not None:
-            print(event)
-            event = self.model.get_next_event()
-
         self.view.print_season()
 
-
+        # Print any events that got raised
+        event = self.model.get_next_event()
+        if event is not None:
+            print("Game event(s)...")
+        while event is not None:
+            print("\t"+str(event))
+            event = self.model.get_next_event()
 
 
 def pick(object_type: str, objects: list, auto_pick: bool = False):
