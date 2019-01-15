@@ -2,15 +2,20 @@
 :copyright: 2019 kwoolter :monkey:
 
 ## About
+Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') that came on the `Welcome` cassette and was written by these legends in 1981:-
+* Tom Hartley
+* Jerry Temple-Fry
+* Richard G Warner
 
-Python version of the old BBC Micro game Yellow River Kingdom.
-
-Still work in progress as no graphics yet!
-
-## Intro
+### Intro
 * Run `run.py` and start the CLI
 * Type `start` to get going
 * Type `play` to start your next turn
+* Keep typing `play` to start your next turn
+
+### To Do
+- Still work in progress as no graphics yet! CLI interface only.
+- see how many villages are hit by flooding 
 
 ## Python Version
 
@@ -30,6 +35,7 @@ Subsequently I found the source code here:-
 (http://brandy.matrixnetwork.co.uk/examples/KINGDOM)
 
 ### Code
+The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
 
 Here is an example procedure that shows the logic used to calculate how much rice was planted and harvested each season (`G`) 
 and how many people died from starvation (`ST`):
