@@ -28,6 +28,7 @@ class GameCLI(cmd.Cmd):
         kingdom_name = input("What is your kingdom's name?")
         self.model.initialise(kingdom_name, player_name)
         self.view.initialise()
+        self.view.print_instructions()
 
         event = self.model.get_next_event()
         if event is not None:
@@ -36,6 +37,9 @@ class GameCLI(cmd.Cmd):
             print("\t"+str(event))
             event = self.model.get_next_event()
 
+    def do_instructions(self, args):
+        """Print the game instructions"""
+        self.view.print_instructions()
 
     def do_play(self,args):
         """Play the next round of the game"""

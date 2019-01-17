@@ -1,6 +1,6 @@
 import sys
 import time
-
+import textwrap
 import model
 
 
@@ -8,6 +8,7 @@ class TextView():
 
     def __init__(self, model: model.Game):
         self.model = model
+        self.wrapper = textwrap.TextWrapper(width=60)
 
     def initialise(self):
         pass
@@ -25,6 +26,23 @@ class TextView():
         season_view = SeasonTextView(self.model.kingdom.previous_season)
         season_view.print()
 
+    def print_instructions(self):
+        type("\n"+ self.wrapper.fill("The kingdom is three villages. It is between the Yellow River and the mountains."))
+        type("\n" + self.wrapper.fill("You have been chosen to take all the important decisions. Your poor predecessor"
+                                    " was executed by thieves who live in the nearby mountains."))
+        type("\n" + self.wrapper.fill("These thieves live off the villagers and often attack. "
+                                    "The rice stored in the villages"
+           " must be protected at all times."))
+        type("\n" + self.wrapper.fill("The year consists of three long seasons, Winter, Growing and Harvest. "
+                                    "rice is planted every Growing Season."
+           " You must decide how much is planted."))
+        type("\n" + self.wrapper.fill("The river is likely to flood the fields and the villages."
+                                    " The high dyke between the river and the fields"
+           " must be kept up to prevent a serious flood."))
+        type("\n" + self.wrapper.fill("The people live off the rice that they have grown. It is a very poor living."
+           " You must decide what the people will work at each season so that they prosper under your leadership."))
+
+        print("\n")
 
 class SeasonTextView():
 
