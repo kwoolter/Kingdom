@@ -1,6 +1,7 @@
 import collections
 import random
 
+
 class Event():
     # Event Types
     DEFAULT = "default"
@@ -93,13 +94,13 @@ class Game():
 
         return next_event
 
-    def play(self, dyke, fields,defend, rice_planted):
+    def play(self, dyke, fields, defend, rice_planted):
         if self.state != Game.STATE_INITIALISED:
             raise Exception("Can't play the game in current state {0}".format(self.state))
 
-        self.kingdom.do_season(dyke, fields,defend, rice_planted)
+        self.kingdom.do_season(dyke, fields, defend, rice_planted)
 
-        if self.kingdom.population <=0 or self.kingdom.total_food <=0:
+        if self.kingdom.population <= 0 or self.kingdom.total_food <= 0:
             self.state = Game.STATE_GAME_OVER
 
 
@@ -120,7 +121,6 @@ class Season():
     RICE_FLOODED = "rice flooded"
     RICE_EATEN = "rice eaten"
 
-
     def __init__(self, name: str, year: int):
         self.name = name
         self.year = year
@@ -133,7 +133,7 @@ class Season():
                                    }
 
         self.food_changes = {Season.RICE_GROWN: 0,
-                             Season.RICE_EATEN : 0,
+                             Season.RICE_EATEN: 0,
                              Season.RICE_STOLEN: 0,
                              Season.RICE_FLOODED: 0}
 
@@ -163,7 +163,7 @@ class Season():
         self.defend = defend
         self.rice_planted = rice_planted
 
-        if random.uniform(0,5) > 5:
+        if random.uniform(0, 5) > 5:
             self.calculate_attack()
             self.calculate_flood()
         else:
@@ -181,7 +181,7 @@ class Season():
     # Thief attack calcs
     def calculate_attack(self):
 
-        attack = random.randint(0,10)
+        attack = random.randint(0, 10)
         do_attack = True
 
         # Season Winter
@@ -190,7 +190,7 @@ class Season():
             if attack < 5:
                 do_attack = False
             else:
-                attack_index = 200 + random.randint(0,70) - self.defend
+                attack_index = 200 + random.randint(0, 70) - self.defend
 
         # Season Growing
         elif self.name == Season.GROWING:
@@ -208,17 +208,17 @@ class Season():
             else:
                 attack_index = random.randint(0, 400) - self.defend
 
-
         if do_attack is True:
             attack_index = max(0, attack_index)
 
             thief_deaths = int(self.defend * attack_index / 400)
             self.population_changes[Season.DEATH_KILLED_BY_THIEVES] = thief_deaths * -1
 
-            stolen_food = attack_index * self.kingdom.total_food / 729 + random.randint(0, int(2000 - self.defend + thief_deaths)) / 10
+            stolen_food = attack_index * self.kingdom.total_food / 729 + random.randint(0, int(
+                2000 - self.defend + thief_deaths)) / 10
             stolen_food = max(0, stolen_food)
             if stolen_food > 2000:
-                stolen_food = 1900 + random.randint(0,200)
+                stolen_food = 1900 + random.randint(0, 200)
 
             self.food_changes[Season.RICE_STOLEN] = int(stolen_food) * -1
 
@@ -239,19 +239,26 @@ class Season():
 
         if flood_index >= 1:
 
-            #villages_flooded = random.randint(0, len(self.kingdom.villages))
-            villages_flooded = 0
-
             if flood_index < 2:
                 flood_index = random.uniform(0, 2)
             else:
                 flood_index = random.uniform(0, 4)
 
+            # villages_flooded = random.randint(0, len(self.kingdom.villages))
+            villages_flooded = self.kingdom.map.flood(flood_index)
+            self.kingdom.add_event(Event("VILLAGE FLOODED",
+                                         "{0} villages flooded".format(villages_flooded),
+                                         Event.GAME))
+
+
             # Calculate flood impact on population
             dyke_survivors = int((self.dyke / 10) * (10 - flood_index))
             field_survivors = int((self.fields / 10) * (10 - flood_index))
             defend_survivors = int((self.defend / 6) * (6 - villages_flooded))
-            self.population_changes[Season.DEATH_BY_FLOODING] = (self.kingdom.population - dyke_survivors - field_survivors - defend_survivors) * -1
+            self.population_changes[Season.DEATH_BY_FLOODING] = (self.kingdom.population
+                                                                 - dyke_survivors
+                                                                 - field_survivors
+                                                                 - defend_survivors) * -1
 
             # Calculate flood impact on stored rice
             self.food_changes[Season.RICE_FLOODED] = int(self.kingdom.total_food * villages_flooded / 6) * -1
@@ -280,11 +287,17 @@ class Season():
             if self.rice_planted > 1000:
                 self.rice_planted = 1000
             self.rice_planted *= (self.fields - 10) / self.fields
+            self.kingdom.add_event(Event("RICE PLANTED",
+                                         "{0} baskets of rice have been successfully planted".format(self.rice_planted),
+                                         Event.GAME))
         # Calculate how much rice is harvested based on how much planted and resources
         elif self.name == Season.HARVEST:
-            rice_grown = 18 * (11 + random.uniform(0, 3)) * (0.05 - 1 / self.fields) * self.rice_planted
+            rice_grown = int(18 * (11 + random.uniform(0, 3)) * (0.05 - 1 / self.fields) * self.rice_planted)
             self.rice_planted = 0
-            self.food_changes[Season.RICE_GROWN] = int(rice_grown)
+            self.food_changes[Season.RICE_GROWN] = rice_grown
+            self.kingdom.add_event(Event("RICE HARVESTED",
+                                         "{0} baskets of rice have been harvested".format(rice_grown),
+                                         Event.GAME))
 
         self.rice_planted = int(self.rice_planted)
 
@@ -316,29 +329,33 @@ class Season():
 
             self.food_changes[Season.RICE_EATEN] = rice_eaten * -1
 
+            self.kingdom.add_event(Event("RICE EATEN",
+                                         "{0} baskets of rice eaten.".format(rice_eaten),
+                                         Event.GAME))
+
             # If population is running low see if any thieves want to join?
             if new_population < 200 and random.randint(0, 3) == 1:
                 new_villagers = 50 + random.randint(1, 100)
                 self.population_changes[Season.ADD_THIEVES] = new_villagers
                 self.kingdom.add_event(Event("THIEVES",
-                                            "{0} thieves have joined the villages.".format(new_villagers),
-                                            Event.GAME))
+                                             "{0} thieves have joined the villages.".format(new_villagers),
+                                             Event.GAME))
 
             # Birth calcs
             new_villagers = int(new_population * 0.045)
             self.population_changes[Season.ADD_BIRTHS] = new_villagers
             self.kingdom.add_event(Event("BIRTHS",
-                                        "{0} new births in the villages.".format(new_villagers),
-                                        Event.GAME))
+                                         "{0} new births in the villages.".format(new_villagers),
+                                         Event.GAME))
 
         else:
-            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER,"All villagers have died!",Event.GAME))
+            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "All villagers have died!", Event.GAME))
 
-        if new_total_food <=0:
+        if new_total_food <= 0:
             self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "There is no food left!", Event.GAME))
 
-class Kingdom():
 
+class Kingdom():
     VILLAGES = 3
     INITIAL_SEASON = Season.WINTER
 
@@ -349,8 +366,9 @@ class Kingdom():
         self.years = {}
         self.current_season = None
         self.previous_season = None
+        self.map = Map()
 
-    def initialise(self, event_queue : EventQueue):
+    def initialise(self, event_queue: EventQueue):
         self._events = event_queue
         self.year = 1
         self.current_season = self.previous_season = Season(Kingdom.INITIAL_SEASON, self.year)
@@ -365,12 +383,14 @@ class Kingdom():
             self.villages.append(Village())
             self.villages[i].initialise()
 
+        self.map.initliaise()
+
     @property
     def population(self):
         return self._population
 
     @population.setter
-    def population(self, new : int):
+    def population(self, new: int):
         self._population = new
 
     @property
@@ -378,20 +398,27 @@ class Kingdom():
         return self._food
 
     @total_food.setter
-    def food(self, new : int):
+    def food(self, new: int):
         self._food = new
 
-    def add_event(self, new_event : Event):
+    def add_event(self, new_event: Event):
         self._events.add_event(new_event)
 
+    def flood(self, flood_index: int):
+        self.map.flood(flood_index)
 
     def do_season(self, dyke: int = 0, fields: int = 0, defend: int = 0, rice_planted: int = 0):
 
         if rice_planted > self.total_food:
-            raise Exception("Trying to plant {0} food which is more than {1} in the store!".format(rice_planted, self.total_food))
+            raise Exception(
+                "Trying to plant {0} food which is more than {1} in the store!".format(rice_planted, self.total_food))
 
         if dyke + fields + defend > self.population:
-            raise Exception("Trying to assign {0} people when you only have {1}!".format(dyke + fields + defend, self.population))
+            raise Exception(
+                "Trying to assign {0} people when you only have {1}!".format(dyke + fields + defend, self.population))
+
+        # Reset the kingdom map
+        self.map.initliaise()
 
         # Store season against the current year
         self.years[self.year][self.current_season.name] = self.current_season
@@ -423,10 +450,10 @@ class Kingdom():
             self.year += 1
             self.years[self.year] = {}
 
-
     def __str__(self):
         _str = "The Kingdom of {0}: year={1}, season={2}, population={3}, food={4}".format(self.name, self.year,
-                                                                                 self.current_season, self.population,
+                                                                                           self.current_season,
+                                                                                           self.population,
                                                                                            self.total_food)
 
         return _str
@@ -456,3 +483,98 @@ class Village():
         self.villagers = villagers
         self.rice = rice
 
+
+class Map():
+    WIDTH = 40
+    HEIGHT = 25
+    DAM_X = 1
+    VILLAGE = "V"
+    DAM = "|"
+    WATER = "~"
+    MOUNTAIN = "^"
+
+    def __init__(self):
+
+        self.map = [[None for y in range(Map.HEIGHT)] for x in range(Map.WIDTH)]
+        self.villages = []
+
+    def initliaise(self):
+        self.villages = []
+
+
+        self.villages.append((5, 15))
+        self.villages.append((8, 8))
+        self.villages.append((13, 8))
+        self.villages.append((21, 12))
+        self.villages.append((22, 18))
+        print(self.villages)
+
+        for vx, vy in self.villages:
+            self.set(vx, vy, Map.VILLAGE)
+
+        for vy in range(3, 20):
+            self.set(0, vy, Map.WATER)
+            self.set(Map.DAM_X, vy, Map.DAM)
+            self.set(23, vy, Map.MOUNTAIN)
+
+    @property
+    def width(self):
+        return len(self.map)
+
+    @property
+    def height(self):
+        return len(self.map[0])
+
+    def is_valid_xy(self, x: int, y: int):
+        result = False
+
+        if x >= 0 and x < self.width and y >= 0 and y < self.height:
+            result = True
+
+        return result
+
+    def get(self, x: int, y: int):
+
+        if self.is_valid_xy(x, y) is False:
+            raise Exception("Trying to get tile at ({0},{1}) which is outside of the floorplan!".format(x, y))
+
+        return self.map[x][y]
+
+    def set(self, x: int, y: int, c):
+        if self.is_valid_xy(x, y) is False:
+            raise Exception("Trying to set tile at ({0},{1}) which is outside of the floorplan!".format(x, y))
+
+        self.map[x][y] = c
+
+    def flood(self, flood_index: int):
+
+        print("Flooding with FI={0}".format(flood_index))
+
+        fy = random.randint(0, 8) + 10
+        fx = Map.DAM_X
+        flooded_villages = set()
+        self.set(fx, fy, Map.WATER)
+        fx += 1
+        self.set(fx, fy, Map.WATER)
+
+        for i in range(int(flood_index * 100)):
+
+            if (fx, fy) in self.villages:
+                flooded_villages.add((fx, fy))
+                print("village hit by flooding at {0},{1}".format(fx,fy))
+
+            i = random.randint(0, 3)
+            if i == 0:
+                fx = min(fx + 1, self.width - 1)
+            elif i == 1:
+                fx = max(fx - 1, Map.DAM_X + 1)
+            elif i == 2:
+                fy = min(fy + 1, self.height - 1)
+            elif i == 3:
+                fy = max(fy - 1, 0)
+
+            self.set(fx, fy, Map.WATER)
+
+        print("Flooded villages = {0}".format(flooded_villages))
+
+        return len(flooded_villages)

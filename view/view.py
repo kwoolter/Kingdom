@@ -9,9 +9,11 @@ class TextView():
     def __init__(self, model: model.Game):
         self.model = model
         self.wrapper = textwrap.TextWrapper(width=60)
+        self.map_view = None
 
     def initialise(self):
-        pass
+        self.map_view = MapView(self.model.kingdom.map)
+        self.map_view.initialise()
 
     def print_census(self):
         kingdom = self.model.kingdom
@@ -19,27 +21,30 @@ class TextView():
         type("\n{0:^50}\n".format("Census Results"))
         type("\nAt the start of the {0} season in year {1} of your reign this is the situation.\n".format(
             kingdom.current_season.name, kingdom.year))
-        print("\nAllowing for births and deaths the population is {0}".format(kingdom.population))
+        print("\nAllowing for births and deaths the population is {0}.".format(kingdom.population))
         print("\nThere are {0} baskets of rice in the village stores.".format(kingdom.total_food))
 
     def print_season(self):
         season_view = SeasonTextView(self.model.kingdom.previous_season)
         season_view.print()
 
+    def print_map(self):
+        self.map_view.print()
+
     def print_instructions(self):
-        type("\n"+ self.wrapper.fill("The kingdom is three villages. It is between the Yellow River and the mountains."))
-        type("\n" + self.wrapper.fill("You have been chosen to take all the important decisions. Your poor predecessor"
+        type("\n\n"+ self.wrapper.fill("The kingdom is three villages. It is between the Yellow River and the mountains."))
+        type("\n\n" + self.wrapper.fill("You have been chosen to take all the important decisions. Your poor predecessor"
                                     " was executed by thieves who live in the nearby mountains."))
-        type("\n" + self.wrapper.fill("These thieves live off the villagers and often attack. "
+        type("\n\n" + self.wrapper.fill("These thieves live off the villagers and often attack. "
                                     "The rice stored in the villages"
            " must be protected at all times."))
-        type("\n" + self.wrapper.fill("The year consists of three long seasons, Winter, Growing and Harvest. "
+        type("\n\n" + self.wrapper.fill("The year consists of three long seasons, Winter, Growing and Harvest. "
                                     "rice is planted every Growing Season."
            " You must decide how much is planted."))
-        type("\n" + self.wrapper.fill("The river is likely to flood the fields and the villages."
+        type("\n\n" + self.wrapper.fill("The river is likely to flood the fields and the villages."
                                     " The high dyke between the river and the fields"
            " must be kept up to prevent a serious flood."))
-        type("\n" + self.wrapper.fill("The people live off the rice that they have grown. It is a very poor living."
+        type("\n\n" + self.wrapper.fill("The people live off the rice that they have grown. It is a very poor living."
            " You must decide what the people will work at each season so that they prosper under your leadership."))
 
         print("\n")
@@ -94,6 +99,26 @@ class SeasonTextView():
             abs(self.season.food_changes[model.Season.RICE_STOLEN])))
 
         print("")
+
+
+class MapView():
+
+    def __init__(self, map : model.Map):
+        self.map = map
+
+    def initialise(self):
+        pass
+
+    def print(self):
+        for y in range(0, self.map.height - 1):
+            row = ""
+            for x in range(0, self.map.width - 1):
+                obj = self.map.get(x,y)
+                if obj is None:
+                    obj = " "
+                row += obj
+
+            print(row)
 
 def type(text: str, wait=0.05):
     for i in range(0, len(text)):
