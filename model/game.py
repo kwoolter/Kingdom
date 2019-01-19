@@ -486,8 +486,10 @@ class Village():
 
 class Map():
     WIDTH = 40
-    HEIGHT = 25
-    DAM_X = 1
+    HEIGHT = 23
+    DAM_X = 2
+    MOUNTAIN_X = 28
+
     VILLAGE = "V"
     DAM = "|"
     WATER = "~"
@@ -495,7 +497,7 @@ class Map():
 
     def __init__(self):
 
-        self.map = [[None for y in range(Map.HEIGHT)] for x in range(Map.WIDTH)]
+        self.map = [[None for y in range(0,Map.HEIGHT)] for x in range(0,Map.WIDTH)]
         self.villages = []
 
     def initliaise(self):
@@ -512,10 +514,11 @@ class Map():
 
         for vy in range(3, 23):
             self.set(0, vy, Map.WATER)
+            self.set(1, vy, Map.WATER)
             self.set(Map.DAM_X, vy, Map.DAM)
             self.set(Map.DAM_X+1, vy, Map.DAM)
             for i in range(0,9):
-                self.set(28+i, vy, Map.MOUNTAIN)
+                self.set(Map.MOUNTAIN_X+i, vy, Map.MOUNTAIN)
 
     @property
     def width(self):
@@ -548,33 +551,32 @@ class Map():
 
     def flood(self, flood_index: int):
 
-        print("Flooding with FI={0}".format(flood_index))
-
         fy = random.randint(0, 8) + 10
         fx = Map.DAM_X
         flooded_villages = set()
         self.set(fx, fy, Map.WATER)
         fx += 1
         self.set(fx, fy, Map.WATER)
+        fx += 1
+        self.set(fx, fy, Map.WATER)
 
         for i in range(int(flood_index * 100)):
 
-            if (fx, fy) in self.villages:
-                flooded_villages.add((fx, fy))
-                print("village hit by flooding at {0},{1}".format(fx,fy))
-
             i = random.randint(0, 3)
             if i == 0:
-                fx = min(fx + 1, self.width - 1)
+                fx = min(fx + 1, Map.MOUNTAIN_X - 1)
             elif i == 1:
-                fx = max(fx - 1, Map.DAM_X + 1)
+                fx = max(fx - 1, Map.DAM_X + 2)
             elif i == 2:
                 fy = min(fy + 1, self.height - 1)
             elif i == 3:
                 fy = max(fy - 1, 0)
 
-            self.set(fx, fy, Map.WATER)
+            for (vx, vy) in self.villages:
+                if self.get(fx,fy) == Map.VILLAGE and abs((fx - vx)) <= 1 and abs((fy - vy)) <=1:
+                    flooded_villages.add((vx, vy))
+                    print("village hit by flooding at {0},{1}".format(fx,fy))
 
-        print("Flooded villages = {0}".format(flooded_villages))
+            self.set(fx, fy, Map.WATER)
 
         return len(flooded_villages)

@@ -4,6 +4,56 @@ import textwrap
 import model
 
 
+class ObjectColours:
+
+    BLACK = 0
+    RED = 1
+    GREEN = 2
+    YELLOW = 3
+    BLUE = 4
+    MAGENTA = 5
+    CYAN = 6
+    GREY = 7
+    WHITE = 8
+
+    BRIGHT_RED = RED + 60
+    BRIGHT_GREEN = GREEN +60
+    BRIGHT_YELLOW = YELLOW + 60
+    BRIGHT_BLUE = BLUE + 60
+    BRIGHT_MAGENTA = MAGENTA + 60
+    BIGHT_CYAN = CYAN + 60
+    BRIGHT_GREY = GREY + 60
+    BRIGHT_WHITE = WHITE + 60
+
+    @staticmethod
+    def colour_codes(fg = BLACK, bg = WHITE):
+        return "\x1B[" + str(fg+30) + ";" + str(bg+40) +"m"
+
+    @staticmethod
+    def reset():
+        return "\x00"
+
+class ObjectGraphics:
+
+    object_to_char = {
+
+        model.Map.DAM : "|",
+        model.Map.WATER : "~",
+        model.Map.VILLAGE : "#",
+        model.Map.MOUNTAIN : "^",
+        None : " "
+
+    }
+
+    object_to_colour = {
+        model.Map.DAM : (ObjectColours.BLUE,ObjectColours.CYAN),
+        model.Map.WATER : (ObjectColours.YELLOW,ObjectColours.BRIGHT_YELLOW),
+        model.Map.VILLAGE : (ObjectColours.BRIGHT_GREEN, ObjectColours.GREEN),
+        model.Map.MOUNTAIN: (ObjectColours.RED, ObjectColours.BLACK),
+        None : (ObjectColours.BLACK, ObjectColours.BLACK),
+    }
+
+
 class TextView():
 
     def __init__(self, model: model.Game):
@@ -110,15 +160,30 @@ class MapView():
         pass
 
     def print(self):
-        for y in range(0, self.map.height - 1):
+
+        header = ObjectColours.colour_codes(fg=ObjectColours.BRIGHT_YELLOW, bg=ObjectColours.BLACK) + \
+                 "{0:^" + str(self.map.width) + "}" + \
+                 ObjectColours.colour_codes(bg=ObjectColours.WHITE)
+
+        print(header.format("Yellow River Kingdom"))
+
+        for y in range(3, self.map.height):
             row = ""
-            for x in range(0, self.map.width - 1):
-                obj = self.map.get(x,y)
-                if obj is None:
-                    obj = " "
-                row += obj
+            for x in range(0, self.map.width):
+                obj = ObjectGraphics.object_to_char[self.map.get(x,y)]
+                fg, bg = ObjectGraphics.object_to_colour[self.map.get(x,y)]
+                codes = ObjectColours.colour_codes(fg, bg)
+                row += codes + obj
+
+            row += ObjectColours.colour_codes(bg=ObjectColours.WHITE)
 
             print(row)
+
+            footer = ObjectColours.colour_codes(fg=ObjectColours.BRIGHT_GREY, bg=ObjectColours.BLACK) + \
+                        "   DYKE        VILLAGES      MOUNTAINS  " + \
+                        ObjectColours.colour_codes(bg=ObjectColours.WHITE)
+
+        print(footer)
 
 def type(text: str, wait=0.05):
     for i in range(0, len(text)):

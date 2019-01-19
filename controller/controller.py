@@ -33,7 +33,7 @@ class GameCLI(cmd.Cmd):
 
         event = self.model.get_next_event()
         if event is not None:
-            print("Game event(s)...")
+            print("\nGame event(s)...")
         while event is not None:
             print("\t"+str(event))
             event = self.model.get_next_event()
@@ -101,7 +101,7 @@ class GameCLI(cmd.Cmd):
             # Print any events that got raised
             event = self.model.get_next_event()
             if event is not None:
-                print("Game event(s)...")
+                print("\nGame event(s)...")
             while event is not None:
                 print("\t"+str(event))
                 event = self.model.get_next_event()
