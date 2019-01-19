@@ -34,6 +34,8 @@ Subsequently I found the source code here:-
 
 (http://brandy.matrixnetwork.co.uk/examples/KINGDOM)
 
+<img height=250 width=400 src="https://github.com/kwoolter/kingdom/blob/master/kingdom/BBC Basic/bbc_screenshot.PNG" alt="game1">
+
 ### Code
 The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
 

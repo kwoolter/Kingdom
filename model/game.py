@@ -499,23 +499,23 @@ class Map():
         self.villages = []
 
     def initliaise(self):
+
         self.villages = []
-
-
-        self.villages.append((5, 15))
-        self.villages.append((8, 8))
         self.villages.append((13, 8))
         self.villages.append((21, 12))
         self.villages.append((22, 18))
-        print(self.villages)
 
         for vx, vy in self.villages:
-            self.set(vx, vy, Map.VILLAGE)
+            for y in range(0,2):
+                for x in range (-1,1):
+                    self.set(vx+x, vy+y, Map.VILLAGE)
 
-        for vy in range(3, 20):
+        for vy in range(3, 23):
             self.set(0, vy, Map.WATER)
             self.set(Map.DAM_X, vy, Map.DAM)
-            self.set(23, vy, Map.MOUNTAIN)
+            self.set(Map.DAM_X+1, vy, Map.DAM)
+            for i in range(0,9):
+                self.set(28+i, vy, Map.MOUNTAIN)
 
     @property
     def width(self):
