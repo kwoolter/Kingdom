@@ -15,7 +15,6 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 
 ### To Do
 - Still work in progress as no graphics yet! CLI interface only.
-- see how many villages are hit by flooding 
 
 ## Python Version
 
@@ -34,7 +33,7 @@ Subsequently I found the source code here:-
 
 (http://brandy.matrixnetwork.co.uk/examples/KINGDOM)
 
-<img height=250 width=400 src="https://github.com/kwoolter/kingdom/blob/master/kingdom/BBC Basic/bbc_screenshot.PNG" alt="game1">
+<img src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
 
 ### Code
 The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
