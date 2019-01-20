@@ -1,5 +1,6 @@
 import cmd
 import logging
+import os
 
 import model
 import view
@@ -19,16 +20,30 @@ class GameCLI(cmd.Cmd):
     def run(self):
         self.cmdloop()
 
+    def emptyline(self):
+        pass
+
     def do_print(self, args):
-        """Print the Game View"""
-        self.view.print()
+        """Print the current census report"""
+        self.view.print_census()
+
+    def do_quit(self, arg):
+        """Quit the game"""
+        if confirm("Are you sure you want to quit") is True:
+            print("\nBye bye...")
+            exit(0)
 
     def do_start(self, args):
         """Start the Game"""
         # player_name = input("What is your name?")
         # kingdom_name = input("What is your kingdom's name?")
+
+        if self.model.state == model.Game.STATE_INITIALISED:
+            if confirm("Are you sure you want to stop the current game") is False:
+                return
+
         player_name = "Player 1"
-        kingdom_name = "Yellows River Kingdom"
+        kingdom_name = "Yellow River Kingdom"
         self.model.initialise(kingdom_name, player_name)
         self.view.initialise()
 
@@ -36,7 +51,7 @@ class GameCLI(cmd.Cmd):
         if event is not None:
             print("\nGame event(s)...")
         while event is not None:
-            print("\t" + str(event))
+            print(" * " + str(event))
             event = self.model.get_next_event()
 
         print("\nType 'play' to get started or 'instructions' got get some help.\n")
@@ -47,6 +62,8 @@ class GameCLI(cmd.Cmd):
 
     def do_play(self, args):
         """Play the next round of the game"""
+
+        os.system('cls')
 
         try:
 
@@ -73,10 +90,14 @@ class GameCLI(cmd.Cmd):
                     else:
                         print("You don't have enough people!")
 
-            # Get how many people should work in the fields
-            loop = True
+            # Get how many people should work in the fields if you have not assigned them all to teh dyke!
+            loop = (self.model.kingdom.population - dyke) > 0
+            if loop is False:
+                fields = 0
+                print("Work in the fields? 0")
+
             while loop is True:
-                fields = is_numeric(input("Work in  the fields?"))
+                fields = is_numeric(input("Work in the fields?"))
                 if fields is None:
                     print("Not a valid number.  Please re-enter.")
                 else:
@@ -120,13 +141,30 @@ class GameCLI(cmd.Cmd):
             if event is not None:
                 print("\nGame event(s)...")
             while event is not None:
-                print("\t" + str(event))
+                print(" * " + str(event))
                 event = self.model.get_next_event()
 
             print("")
 
         except Exception as err:
             print(str(err))
+
+
+# Function to ask the user a simple Yes/No confirmation and return a boolean
+def confirm(question: str):
+    choices = ["Yes", "No"]
+
+    while True:
+        print(question)
+        for i in range(0, len(choices)):
+            print("%i. %s" % (i + 1, choices[i]))
+        choice = input("Choice?")
+        if is_numeric(choice) and int(choice) > 0 and int(choice) <= (len(choices) + 1):
+            break
+        else:
+            print("Invalid choice.  Try again!")
+
+    return (int(choice) == 1)
 
 
 def pick(object_type: str, objects: list, auto_pick: bool = False):

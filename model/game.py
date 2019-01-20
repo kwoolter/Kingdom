@@ -170,13 +170,10 @@ class Season():
             self.calculate_flood()
             self.calculate_attack()
 
-        self.calculated_season_end()
+        self.calculate_season_end()
 
         # Wrap up
         self.calculated = True
-        # print(self.population_changes)
-        # print(self.food_changes)
-        # print("Rice planted out in the fields={0}".format(self.rice_planted))
 
     # Thief attack calcs
     def calculate_attack(self):
@@ -274,7 +271,7 @@ class Season():
             self.rice_planted = int(self.rice_planted)
 
     # Food, Births and Deaths
-    def calculated_season_end(self):
+    def calculate_season_end(self):
 
         # Rice planting and growing calcs
 
@@ -363,6 +360,7 @@ class Kingdom():
         self.name = name
         self.villages = None
         self.year = 0
+        self.seasons = 0
         self.years = {}
         self.current_season = None
         self.previous_season = None
@@ -445,6 +443,8 @@ class Kingdom():
         # Move to the next season
         self.previous_season = self.current_season
         self.current_season = Season(self.current_season.get_next_season_name(), self.year)
+
+        self.seasons +=1
 
         # If we got back to Winter we have started a new year!
         if self.current_season.name == Season.WINTER:
@@ -598,7 +598,7 @@ class Map():
 
             # If we hit a village, see which village has been hit...
             if self.get(fx, fy) == Map.VILLAGE:
-                for (vx, vy) in self.villages:
+                for (vx, vy) in Map.VILLAGES:
                     if abs((fx - vx)) <= 1 and abs((fy - vy)) <= 1:
                         flooded_villages.add((vx, vy))
                         #print("village hit by flooding at {0},{1}".format(fx, fy))
