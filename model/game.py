@@ -322,12 +322,12 @@ class Season():
 
             # Calculate how much food was eaten
             new_population -= starvation_deaths
-            rice_eaten = int(new_population * t - starvation_deaths * t / 2)
+            rice_eaten = int(new_population * t - starvation_deaths * t / 2) * -1
 
-            self.food_changes[Season.RICE_EATEN] = rice_eaten * -1
+            self.food_changes[Season.RICE_EATEN] = rice_eaten
 
             self.kingdom.add_event(Event("RICE EATEN",
-                                         "{0} baskets of rice eaten.".format(rice_eaten),
+                                         "{0} baskets of rice eaten.".format(abs(rice_eaten)),
                                          Event.GAME))
 
             # If population is running low see if any thieves want to join?
@@ -338,7 +338,7 @@ class Season():
                                              "{0} thieves have joined the villages.".format(new_villagers),
                                              Event.GAME))
 
-            # Birth calcs
+            # Birth calcs based on remaining population
             new_villagers = int(new_population * 0.045)
             self.population_changes[Season.ADD_BIRTHS] = new_villagers
             self.kingdom.add_event(Event("BIRTHS",

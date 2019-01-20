@@ -145,7 +145,6 @@ class TextView():
 
 
 class SeasonTextView():
-
     WIDTH = 50
 
     def __init__(self, season: model.Season):
