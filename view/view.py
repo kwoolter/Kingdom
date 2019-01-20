@@ -41,6 +41,7 @@ class ObjectGraphics:
         model.Map.WATER : "~",
         model.Map.VILLAGE : "#",
         model.Map.MOUNTAIN : "^",
+        model.Map.THIEF : "T",
         None : " "
 
     }
@@ -50,6 +51,7 @@ class ObjectGraphics:
         model.Map.WATER : (ObjectColours.YELLOW,ObjectColours.BRIGHT_YELLOW),
         model.Map.VILLAGE : (ObjectColours.BRIGHT_GREEN, ObjectColours.GREEN),
         model.Map.MOUNTAIN: (ObjectColours.RED, ObjectColours.BLACK),
+        model.Map.THIEF: (ObjectColours.RED, ObjectColours.BLACK),
         None : (ObjectColours.BLACK, ObjectColours.BLACK),
     }
 

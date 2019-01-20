@@ -1,10 +1,11 @@
 import cmd
-import model
-import view
 import logging
 
-class GameCLI(cmd.Cmd):
+import model
+import view
 
+
+class GameCLI(cmd.Cmd):
     intro = "Welcome to The Kingdom.\nType 'start' to get going!\nType 'help' for a list of commands."
     prompt = "What next?"
 
@@ -24,26 +25,27 @@ class GameCLI(cmd.Cmd):
 
     def do_start(self, args):
         """Start the Game"""
-        player_name = input("What is your name?")
-        kingdom_name = input("What is your kingdom's name?")
+        # player_name = input("What is your name?")
+        # kingdom_name = input("What is your kingdom's name?")
+        player_name = "Player 1"
+        kingdom_name = "Yellows River Kingdom"
         self.model.initialise(kingdom_name, player_name)
         self.view.initialise()
-        #self.view.print_instructions()
-        self.view.print_map()
 
         event = self.model.get_next_event()
         if event is not None:
             print("\nGame event(s)...")
         while event is not None:
-            print("\t"+str(event))
+            print("\t" + str(event))
             event = self.model.get_next_event()
+
+        print("\nType 'play' to get started or 'instructions' got get some help.\n")
 
     def do_instructions(self, args):
         """Print the game instructions"""
         self.view.print_instructions()
 
-
-    def do_play(self,args):
+    def do_play(self, args):
         """Play the next round of the game"""
 
         try:
@@ -57,35 +59,50 @@ class GameCLI(cmd.Cmd):
             # Get the next round of decisions
             print("\nHow many people should:")
 
+            # Get how many people should defend the dyke
             loop = True
             while loop is True:
-                dyke = int(input("Defend the dyke?"))
-                if dyke <= self.model.kingdom.population:
-                    loop = False
+                dyke = is_numeric(input("Defend the dyke?"))
+                if dyke is None:
+                    print("Not a valid number.  Please re-enter.")
                 else:
-                    print("You don't have enough people!")
+                    dyke = int(dyke)
 
+                    if dyke <= self.model.kingdom.population:
+                        loop = False
+                    else:
+                        print("You don't have enough people!")
+
+            # Get how many people should work in the fields
             loop = True
             while loop is True:
-                fields = int(input("Work in  the fields?"))
-                if (self.model.kingdom.population - dyke - fields) >= 0:
-                    loop = False
+                fields = is_numeric(input("Work in  the fields?"))
+                if fields is None:
+                    print("Not a valid number.  Please re-enter.")
                 else:
-                    print("You don't have enough people!")
+                    fields = int(fields)
+                    if (self.model.kingdom.population - dyke - fields) >= 0:
+                        loop = False
+                    else:
+                        print("You don't have enough people!")
 
             # Auto calculate number of defenders
-            defend = self.model.kingdom.population - dyke - fields
+            defend = int(self.model.kingdom.population - dyke - fields)
             print("Defend the villages? {0}".format(defend))
 
             # Extra input for the growing season
             if self.model.kingdom.current_season.name == model.Season.GROWING:
                 loop = True
                 while loop is True:
-                    rice_planted = int(input("Baskets of rice to plant?"))
-                    if rice_planted <= self.model.kingdom.total_food:
-                        loop = False
+                    rice_planted = is_numeric(input("Baskets of rice to plant?"))
+                    if rice_planted is None:
+                        print("Not a valid number.  Please re-enter.")
                     else:
-                        print("You don't have that much food to plant!")
+                        rice_planted = int(rice_planted)
+                        if rice_planted <= self.model.kingdom.total_food:
+                            loop = False
+                        else:
+                            print("You don't have that much food to plant!")
             else:
                 rice_planted = 0
 
@@ -95,7 +112,7 @@ class GameCLI(cmd.Cmd):
             # Print the season results
             self.view.print_season()
 
-            self.model.kingdom.flood(0.55)
+            # Print the map
             self.view.print_map()
 
             # Print any events that got raised
@@ -103,13 +120,14 @@ class GameCLI(cmd.Cmd):
             if event is not None:
                 print("\nGame event(s)...")
             while event is not None:
-                print("\t"+str(event))
+                print("\t" + str(event))
                 event = self.model.get_next_event()
 
             print("")
 
         except Exception as err:
             print(str(err))
+
 
 def pick(object_type: str, objects: list, auto_pick: bool = False):
     '''pick() -  Function to present a menu to pick an object from a list of objects

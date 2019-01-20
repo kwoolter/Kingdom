@@ -13,9 +13,6 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 * Type `play` to start your next turn
 * Keep typing `play` to start your next turn
 
-### To Do
-- Still work in progress as no graphics yet! CLI interface only.
-
 ## Python Version
 
 This Python re-write is radically different in structure to the original!  It is a total re-write! More to follow on this.

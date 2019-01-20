@@ -216,7 +216,7 @@ class Season():
 
             stolen_food = attack_index * self.kingdom.total_food / 729 + random.randint(0, int(
                 2000 - self.defend + thief_deaths)) / 10
-            stolen_food = max(0, stolen_food)
+            stolen_food = max(0, int(stolen_food))
             if stolen_food > 2000:
                 stolen_food = 1900 + random.randint(0, 200)
 
@@ -244,12 +244,11 @@ class Season():
             else:
                 flood_index = random.uniform(0, 4)
 
-            # villages_flooded = random.randint(0, len(self.kingdom.villages))
             villages_flooded = self.kingdom.map.flood(flood_index)
+
             self.kingdom.add_event(Event("VILLAGE FLOODED",
                                          "{0} villages flooded".format(villages_flooded),
                                          Event.GAME))
-
 
             # Calculate flood impact on population
             dyke_survivors = int((self.dyke / 10) * (10 - flood_index))
@@ -287,6 +286,7 @@ class Season():
             if self.rice_planted > 1000:
                 self.rice_planted = 1000
             self.rice_planted *= (self.fields - 10) / self.fields
+            self.rice_planted = int(self.rice_planted)
             self.kingdom.add_event(Event("RICE PLANTED",
                                          "{0} baskets of rice have been successfully planted".format(self.rice_planted),
                                          Event.GAME))
@@ -405,9 +405,13 @@ class Kingdom():
         self._events.add_event(new_event)
 
     def flood(self, flood_index: int):
-        self.map.flood(flood_index)
+        # self.map.flood(flood_index)
+        pass
 
     def do_season(self, dyke: int = 0, fields: int = 0, defend: int = 0, rice_planted: int = 0):
+
+        # Reset the map
+        self.map.initliaise()
 
         if rice_planted > self.total_food:
             raise Exception(
@@ -416,9 +420,6 @@ class Kingdom():
         if dyke + fields + defend > self.population:
             raise Exception(
                 "Trying to assign {0} people when you only have {1}!".format(dyke + fields + defend, self.population))
-
-        # Reset the kingdom map
-        self.map.initliaise()
 
         # Store season against the current year
         self.years[self.year][self.current_season.name] = self.current_season
@@ -485,40 +486,50 @@ class Village():
 
 
 class Map():
+
     WIDTH = 40
     HEIGHT = 23
-    DAM_X = 2
-    MOUNTAIN_X = 28
+    DAM_X = 3
+    MOUNTAIN_X = 27
 
     VILLAGE = "V"
     DAM = "|"
     WATER = "~"
     MOUNTAIN = "^"
+    THIEF = "T"
+
+    THIEVES = ((31, 13), (31, 15), (32, 16), (32, 17))
+    VILLAGES = ((13, 8), (21, 12), (22, 18))
 
     def __init__(self):
 
-        self.map = [[None for y in range(0,Map.HEIGHT)] for x in range(0,Map.WIDTH)]
-        self.villages = []
+        self.map = []
 
     def initliaise(self):
 
-        self.villages = []
-        self.villages.append((13, 8))
-        self.villages.append((21, 12))
-        self.villages.append((22, 18))
+        # Clear the map squares
+        self.map = [[None for y in range(0, Map.HEIGHT)] for x in range(0, Map.WIDTH)]
 
-        for vx, vy in self.villages:
-            for y in range(0,2):
-                for x in range (-1,1):
-                    self.set(vx+x, vy+y, Map.VILLAGE)
+        # Add the villages to the map
+        for vx, vy in Map.VILLAGES:
+            for y in range(0, 2):
+                for x in range(-1, 1):
+                    self.set(vx + x, vy + y, Map.VILLAGE)
 
+        # Add the river, dam and mountains
         for vy in range(3, 23):
             self.set(0, vy, Map.WATER)
             self.set(1, vy, Map.WATER)
+            self.set(2, vy, Map.WATER)
             self.set(Map.DAM_X, vy, Map.DAM)
-            self.set(Map.DAM_X+1, vy, Map.DAM)
-            for i in range(0,9):
-                self.set(Map.MOUNTAIN_X+i, vy, Map.MOUNTAIN)
+            self.set(Map.DAM_X + 1, vy, Map.DAM)
+            for i in range(0, 10):
+                if i not in (4, 5):
+                    self.set(Map.MOUNTAIN_X + i, vy, Map.MOUNTAIN)
+
+        # Add the thieves
+        for tx, ty in Map.THIEVES:
+            self.set(tx, ty, Map.THIEF)
 
     @property
     def width(self):
@@ -528,7 +539,9 @@ class Map():
     def height(self):
         return len(self.map[0])
 
+    # Are the specified coordinates within the area of the map?
     def is_valid_xy(self, x: int, y: int):
+
         result = False
 
         if x >= 0 and x < self.width and y >= 0 and y < self.height:
@@ -536,6 +549,7 @@ class Map():
 
         return result
 
+    # Get a map square at the specified co-ordinates
     def get(self, x: int, y: int):
 
         if self.is_valid_xy(x, y) is False:
@@ -543,25 +557,35 @@ class Map():
 
         return self.map[x][y]
 
+    # Set a map square at the specified co-ordinates with the specified object
     def set(self, x: int, y: int, c):
+
         if self.is_valid_xy(x, y) is False:
             raise Exception("Trying to set tile at ({0},{1}) which is outside of the floorplan!".format(x, y))
 
         self.map[x][y] = c
 
+    # Perform a flood whose severity is governed by teh flood_index
     def flood(self, flood_index: int):
 
+        # Pick a random place for the flood to start
         fy = random.randint(0, 8) + 10
         fx = Map.DAM_X
+
+        # Declare a set to store the list of villages that get hit by the flood
         flooded_villages = set()
+
+        # Start the flood off
         self.set(fx, fy, Map.WATER)
         fx += 1
         self.set(fx, fy, Map.WATER)
         fx += 1
         self.set(fx, fy, Map.WATER)
 
+        # Based on the severity of the flood (flood_index)...
         for i in range(int(flood_index * 100)):
 
+            # Randomly pick which way the flood is moving
             i = random.randint(0, 3)
             if i == 0:
                 fx = min(fx + 1, Map.MOUNTAIN_X - 1)
@@ -570,13 +594,16 @@ class Map():
             elif i == 2:
                 fy = min(fy + 1, self.height - 1)
             elif i == 3:
-                fy = max(fy - 1, 0)
+                fy = max(fy - 1, 3)
 
-            for (vx, vy) in self.villages:
-                if self.get(fx,fy) == Map.VILLAGE and abs((fx - vx)) <= 1 and abs((fy - vy)) <=1:
-                    flooded_villages.add((vx, vy))
-                    print("village hit by flooding at {0},{1}".format(fx,fy))
+            # If we hit a village, see which village has been hit...
+            if self.get(fx, fy) == Map.VILLAGE:
+                for (vx, vy) in self.villages:
+                    if abs((fx - vx)) <= 1 and abs((fy - vy)) <= 1:
+                        flooded_villages.add((vx, vy))
+                        #print("village hit by flooding at {0},{1}".format(fx, fy))
 
+            # Flood the map square
             self.set(fx, fy, Map.WATER)
 
         return len(flooded_villages)
