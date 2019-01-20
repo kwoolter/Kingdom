@@ -136,12 +136,12 @@ class TextView():
             msg = self.wrapper.fill(
                 "There was no food left. All of the people have run off and joined up with the thieves" \
                 " after {0} seasons of your misrule".format(kingdom.seasons))
-            type("\n" + msg + "\n")
+            type("\n" + msg + "\n\n")
         elif kingdom.population <= 0:
             msg = self.wrapper.fill("There is no-one left! They have all been killed off by your "
                                     "decisions after only {0} year(s).".format(kingdom.year))
 
-            type("\n" + msg + "\n")
+            type("\n" + msg + "\n\n")
 
 
 class SeasonTextView():
