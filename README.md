@@ -32,7 +32,7 @@ Subsequently I found the source code here:-
 
 (http://brandy.matrixnetwork.co.uk/examples/KINGDOM)
 
-<img width=200 height=125 src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
+<img width="200" height="125" src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
 
 ### Code
 The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
