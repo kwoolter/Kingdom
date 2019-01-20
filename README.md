@@ -13,11 +13,13 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 * Type `start` to get going
 * Type `play` to start your next turn
 * Keep typing `play` to start your next turn
-* Uses `colorama` package to make the text output more exciting
+
+<img height="350" width="212" src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/view/screenshots/pyKingdom.PNG" alt="game2">
 
 ## Python Version
 
 This Python re-write is radically different in structure to the original!  It is a total re-write! More to follow on this.
+Uses `colorama` package to make the text output more exciting.
 
 ## BBC Micro Version
 
@@ -32,7 +34,7 @@ Subsequently I found the source code here:-
 
 (http://brandy.matrixnetwork.co.uk/examples/KINGDOM)
 
-<img width="200" height="125" src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
+<img height="250" width="400" src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
 
 ### Code
 The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
