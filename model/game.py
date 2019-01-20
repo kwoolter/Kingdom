@@ -346,10 +346,10 @@ class Season():
                                          Event.GAME))
 
         else:
-            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "All villagers have died!", Event.GAME))
+            self.kingdom.add_event(Event("GAME OVER", "All villagers have died!", Event.GAME))
 
         if new_total_food <= 0:
-            self.kingdom.add_event(Event(Event.EVENT_GAME_OVER, "There is no food left!", Event.GAME))
+            self.kingdom.add_event(Event("GAME OVER", "There is no food left!", Event.GAME))
 
 
 class Kingdom():
