@@ -2,6 +2,7 @@ import sys
 import time
 import textwrap
 import model
+from colorama import init, Fore, Back
 
 
 class ObjectColours:
@@ -26,8 +27,9 @@ class ObjectColours:
     BRIGHT_WHITE = WHITE + 60
 
     @staticmethod
-    def colour_codes(fg = BLACK, bg = WHITE):
-        return "\x1B[" + str(fg+30) + ";" + str(bg+40) +"m"
+    def colour_codes(fg = Fore.WHITE, bg = Back.BLACK):
+        return fg + bg
+        #return "\x1B[" + str(fg+30) + ";" + str(bg+40) +"m"
 
     @staticmethod
     def reset():
@@ -46,15 +48,23 @@ class ObjectGraphics:
 
     }
 
-    object_to_colour = {
-        model.Map.DAM : (ObjectColours.BLUE,ObjectColours.CYAN),
-        model.Map.WATER : (ObjectColours.YELLOW,ObjectColours.BRIGHT_YELLOW),
-        model.Map.VILLAGE : (ObjectColours.BRIGHT_GREEN, ObjectColours.GREEN),
-        model.Map.MOUNTAIN: (ObjectColours.RED, ObjectColours.BLACK),
-        model.Map.THIEF: (ObjectColours.RED, ObjectColours.BLACK),
-        None : (ObjectColours.BLACK, ObjectColours.BLACK),
-    }
+    # object_to_colour = {
+    #     model.Map.DAM : (ObjectColours.BLUE,ObjectColours.CYAN),
+    #     model.Map.WATER : (ObjectColours.YELLOW,ObjectColours.BRIGHT_YELLOW),
+    #     model.Map.VILLAGE : (ObjectColours.BRIGHT_GREEN, ObjectColours.GREEN),
+    #     model.Map.MOUNTAIN: (ObjectColours.RED, ObjectColours.BLACK),
+    #     model.Map.THIEF: (ObjectColours.RED, ObjectColours.BLACK),
+    #     None : (ObjectColours.BLACK, ObjectColours.BLACK),
+    # }
 
+    object_to_colour = {
+        model.Map.DAM : (Fore.BLUE,Back.CYAN),
+        model.Map.WATER : (Fore.YELLOW,Back.LIGHTYELLOW_EX),
+        model.Map.VILLAGE : (Fore.LIGHTGREEN_EX, Back.GREEN),
+        model.Map.MOUNTAIN: (Fore.RED, Back.BLACK),
+        model.Map.THIEF: (Fore.RED, Back.BLACK),
+        None : (Fore.BLACK, Back.BLACK),
+    }
 
 class TextView():
 
@@ -66,9 +76,12 @@ class TextView():
     def initialise(self):
         self.map_view = MapView(self.model.kingdom.map)
         self.map_view.initialise()
+        init(convert=True)
 
     def print_census(self):
         kingdom = self.model.kingdom
+
+        print(Fore.LIGHTWHITE_EX + Back.BLACK)
 
         type("\n{0:^50}\n".format("Census Results"))
         type("\nAt the start of the {0} season in year {1} of your reign this is the situation.\n".format(
@@ -84,6 +97,9 @@ class TextView():
         self.map_view.print()
 
     def print_instructions(self):
+
+        print(Fore.LIGHTWHITE_EX + Back.BLACK)
+
         type("\n\n"+ self.wrapper.fill("The kingdom is three villages. It is between the Yellow River and the mountains."))
         type("\n\n" + self.wrapper.fill("You have been chosen to take all the important decisions. Your poor predecessor"
                                     " was executed by thieves who live in the nearby mountains."))
@@ -107,6 +123,8 @@ class SeasonTextView():
         self.season = season
 
     def print(self):
+
+        print(Fore.LIGHTWHITE_EX + Back.BLACK)
 
         type("\n{0:^50}\n".format("Village Leader's Report"))
 
@@ -163,9 +181,8 @@ class MapView():
 
     def print(self):
 
-        header = ObjectColours.colour_codes(fg=ObjectColours.BRIGHT_YELLOW, bg=ObjectColours.BLACK) + \
-                 "{0:^" + str(self.map.width) + "}" + \
-                 ObjectColours.colour_codes(bg=ObjectColours.WHITE)
+        header = Fore.LIGHTYELLOW_EX + Back.BLACK + \
+                 "{0:^" + str(self.map.width) + "}" + Back.BLACK
 
         print(header.format("Yellow River Kingdom"))
 
@@ -174,16 +191,15 @@ class MapView():
             for x in range(0, self.map.width):
                 obj = ObjectGraphics.object_to_char[self.map.get(x,y)]
                 fg, bg = ObjectGraphics.object_to_colour[self.map.get(x,y)]
-                codes = ObjectColours.colour_codes(fg, bg)
-                row += codes + obj
+                row += fg + bg + obj
 
-            row += ObjectColours.colour_codes(bg=ObjectColours.WHITE)
+            row += Back.BLACK
 
             print(row)
 
-            footer = ObjectColours.colour_codes(fg=ObjectColours.BRIGHT_GREY, bg=ObjectColours.BLACK) + \
+            footer = Fore.LIGHTWHITE_EX + Back.BLACK + \
                         "   DYKE        VILLAGES      MOUNTAINS  " + \
-                        ObjectColours.colour_codes(bg=ObjectColours.WHITE)
+                     Back.BLACK
 
         print(footer)
 
