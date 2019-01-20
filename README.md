@@ -14,7 +14,7 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 * Type `play` to start your next turn
 * Keep typing `play` to start your next turn
 
-<img height="350" width="212" src="https://github.com/kwoolter/Kingdom/blob/colorama_version/view/screenshots/pyKingdom.png?raw=true" alt="game2">
+<img height="525" width="318" src="https://github.com/kwoolter/Kingdom/blob/colorama_version/view/screenshots/pyKingdom.png?raw=true" alt="game2">
 
 ## Python Version
 
