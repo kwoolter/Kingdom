@@ -49,15 +49,6 @@ class ObjectGraphics:
 
     }
 
-    # object_to_colour = {
-    #     model.Map.DAM : (ObjectColours.BLUE,ObjectColours.CYAN),
-    #     model.Map.WATER : (ObjectColours.YELLOW,ObjectColours.BRIGHT_YELLOW),
-    #     model.Map.VILLAGE : (ObjectColours.BRIGHT_GREEN, ObjectColours.GREEN),
-    #     model.Map.MOUNTAIN: (ObjectColours.RED, ObjectColours.BLACK),
-    #     model.Map.THIEF: (ObjectColours.RED, ObjectColours.BLACK),
-    #     None : (ObjectColours.BLACK, ObjectColours.BLACK),
-    # }
-
     object_to_colour = {
         model.Map.DAM: (Fore.BLUE, Back.CYAN),
         model.Map.WATER: (Fore.YELLOW, Back.LIGHTYELLOW_EX),
@@ -75,13 +66,17 @@ class TextView():
         self.model = model
         self.wrapper = textwrap.TextWrapper(width=TextView.WIDTH)
         self.map_view = None
+        init(convert=True)
 
     def initialise(self):
         self.map_view = MapView(self.model.kingdom.map)
         self.map_view.initialise()
-        init(convert=True)
 
     def print_census(self):
+
+        if self.model.state == model.Game.STATE_LOADED:
+            raise Exception("Game not in a state to be printed ({0}).".format(self.model.state))
+
         kingdom = self.model.kingdom
 
         print(Fore.LIGHTWHITE_EX + Back.BLACK)
@@ -142,6 +137,14 @@ class TextView():
                                     "decisions after only {0} year(s).".format(kingdom.year))
 
             type("\n" + msg + "\n\n")
+
+    def print_high_score_table(self):
+        print(Fore.BLACK + Back.LIGHTYELLOW_EX)
+        msg = " "* TextView.WIDTH + "\n" + "{0:^" + str(TextView.WIDTH) + "}" + "\n" + " "* TextView.WIDTH
+        msg = msg.format("Kingdom Legends")
+        type("\n" + msg + "\n\n")
+        print(Fore.WHITE + Back.BLACK)
+        self.model.print_high_scores()
 
 
 class SeasonTextView():
@@ -241,7 +244,7 @@ class MapView():
         print(footer)
 
 
-def type(text: str, wait=0.05):
+def type(text: str, wait=0.01):
     for i in range(0, len(text)):
         sys.stdout.write(text[i])
         sys.stdout.flush()

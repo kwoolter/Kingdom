@@ -42,6 +42,8 @@ class Game():
     STATE_RUNNING = "running"
     STATE_GAME_OVER = "Game Over"
 
+    HST_AUTO_SAVE = True
+
     # Events
     EVENT_TICK = "Tick"
     EVENT_GAME_OVER = "game over"
@@ -52,6 +54,14 @@ class Game():
         self.kingdom = None
         self.player_name = None
         self.events = EventQueue()
+
+        self.hst_population = HighScoreTable("Biggest Population", prefix="people=")
+        self.hst_total_food = HighScoreTable("Largest Food Amassed", prefix="food=")
+        self.hst_length_of_rule = HighScoreTable("Longest Reign", prefix="seasons=")
+
+        self.hst_population.load()
+        self.hst_total_food.load()
+        self.hst_length_of_rule.load()
 
     def initialise(self, kingdom_name: str, player_name: str = "John Doe"):
         self.state = Game.STATE_INITIALISED
@@ -101,7 +111,21 @@ class Game():
         self.kingdom.do_season(dyke, fields, defend, rice_planted)
 
         if self.kingdom.population <= 0 or self.kingdom.total_food <= 0:
-            self.state = Game.STATE_GAME_OVER
+            self.do_game_over()
+
+    def do_game_over(self):
+        self.state = Game.STATE_GAME_OVER
+        print("Updating HSTs....")
+        self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
+        self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
+        self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
+
+    def print_high_scores(self):
+        self.hst_length_of_rule.print()
+        print("")
+        self.hst_population.print()
+        print("")
+        self.hst_total_food.print()
 
 
 class Season():
@@ -370,8 +394,11 @@ class Kingdom():
         self._events = event_queue
         self.year = 1
         self.current_season = self.previous_season = Season(Kingdom.INITIAL_SEASON, self.year)
-        self._population = 300 + random.randint(0, 100)
-        self._food = 5000 + random.randint(0, 2000)
+        self._population_hwm = 0
+        self._total_food_hwm = 0
+
+        self.population = 300 + random.randint(0, 100)
+        self.food = 5000 + random.randint(0, 2000)
 
         self.years[self.year] = {}
         self.years[self.year][self.current_season.name] = self.current_season
@@ -390,6 +417,7 @@ class Kingdom():
     @population.setter
     def population(self, new: int):
         self._population = new
+        self._population_hwm = max(self._population_hwm, new)
 
     @property
     def total_food(self):
@@ -398,6 +426,7 @@ class Kingdom():
     @total_food.setter
     def food(self, new: int):
         self._food = new
+        self._total_food_hwm = max(self._total_food_hwm, new)
 
     def add_event(self, new_event: Event):
         self._events.add_event(new_event)
@@ -428,7 +457,7 @@ class Kingdom():
         # Remember how much rice we planted in the growing season and deduct from total food
         elif self.current_season.name == Season.GROWING:
             self.rice_planted = rice_planted
-            self._food -= rice_planted
+            self.food -= rice_planted
 
         # See what happens in this season
         self.current_season.calculate(self, dyke, fields, defend, self.rice_planted)
@@ -437,14 +466,14 @@ class Kingdom():
         self.rice_planted = self.current_season.rice_planted
 
         # Make changes to population and food supplies
-        self._population += self.current_season.population_change
-        self._food += self.current_season.food_change
+        self.population += self.current_season.population_change
+        self.food += self.current_season.food_change
 
         # Move to the next season
         self.previous_season = self.current_season
         self.current_season = Season(self.current_season.get_next_season_name(), self.year)
 
-        self.seasons +=1
+        self.seasons += 1
 
         # If we got back to Winter we have started a new year!
         if self.current_season.name == Season.WINTER:
@@ -452,10 +481,16 @@ class Kingdom():
             self.years[self.year] = {}
 
     def __str__(self):
-        _str = "The Kingdom of {0}: year={1}, season={2}, population={3}, food={4}".format(self.name, self.year,
-                                                                                           self.current_season,
-                                                                                           self.population,
-                                                                                           self.total_food)
+
+        _str = "The Kingdom of {0}: year={1}, season={2}, population={3:,}, food={4:,}".format(self.name,
+                                                                                               self.year,
+                                                                                               self.current_season,
+                                                                                               self.population,
+                                                                                               self.total_food)
+
+        _str += "\nSeasons played={0}, max population={1:,}, max food={2:,}".format(self.seasons,
+                                                                                    self._population_hwm,
+                                                                                    self._total_food_hwm)
 
         return _str
 
@@ -486,7 +521,6 @@ class Village():
 
 
 class Map():
-
     WIDTH = 40
     HEIGHT = 23
     DAM_X = 3
@@ -601,9 +635,92 @@ class Map():
                 for (vx, vy) in Map.VILLAGES:
                     if abs((fx - vx)) <= 1 and abs((fy - vy)) <= 1:
                         flooded_villages.add((vx, vy))
-                        #print("village hit by flooding at {0},{1}".format(fx, fy))
+                        # print("village hit by flooding at {0},{1}".format(fx, fy))
 
             # Flood the map square
             self.set(fx, fy, Map.WATER)
 
         return len(flooded_villages)
+
+
+from operator import itemgetter
+import pickle
+import logging
+
+
+class HighScoreTable():
+    def __init__(self, name="default", max_size=10, prefix=""):
+        self.name = name
+        self.max_size = max_size
+        self.prefix = prefix
+        self.table = []
+
+    def add(self, name: str, score: float, auto_save=False):
+
+        added = False
+
+        # If the specified score makes it into the high score table...
+        if self.is_high_score(score):
+            # Add it and re-sort the table
+            self.table.append((name, score))
+            self.table.sort(key=itemgetter(1, 0), reverse=True)
+            added = True
+
+        # Trim the size of the table to be the maximum size
+        while len(self.table) > self.max_size:
+            del self.table[-1]
+
+        if auto_save is True:
+            self.save()
+
+        return added
+
+    def is_high_score(self, score):
+        if len(self.table) < self.max_size:
+            return True
+        else:
+            name, lowest_score = self.table[len(self.table) - 1]
+            if score > lowest_score:
+                return True
+            elif score == lowest_score and len(self.table) < self.max_size:
+                return True
+            else:
+                return False
+
+    def save(self):
+        file_name = self.name + ".hst"
+        game_file = open(file_name, "wb")
+        pickle.dump(self, game_file)
+        game_file.close()
+
+        logging.info("%s saved." % file_name)
+
+    def load(self):
+
+        file_name = self.name + ".hst"
+
+        try:
+            game_file = open(file_name, "rb")
+
+            new_table = pickle.load(game_file)
+
+            self.table = new_table.table
+            self.max_size = new_table.max_size
+
+            game_file.close()
+
+            logging.info("\n%s loaded.\n" % file_name)
+
+        except IOError:
+
+            logging.warning("High Score Table file %s not found." % file_name)
+
+    def print(self):
+        print("%s High Score Table - top %i scores" % (self.name, self.max_size))
+
+        if len(self.table) == 0:
+            print("No high scores recorded.")
+        else:
+            for i in range(len(self.table)):
+                name, score = self.table[i]
+                print("%i. %s - %s%s" % (i + 1, name, self.prefix, format(score, ",d")))

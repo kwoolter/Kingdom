@@ -25,24 +25,34 @@ class GameCLI(cmd.Cmd):
 
     def do_print(self, args):
         """Print the current census report"""
-        self.view.print_census()
+        if self.model.state != model.Game.STATE_LOADED:
+            self.view.print_census()
+            print(self.model)
+        else:
+            print("\nGame not started!")
+            print(str(self.model))
+
+    def do_hst(self, args):
+        """ Print the high score tables"""
+        self.view.print_high_score_table()
 
     def do_quit(self, arg):
         """Quit the game"""
         if confirm("Are you sure you want to quit") is True:
+            self.model.do_game_over()
             print("\nBye bye...")
             exit(0)
 
     def do_start(self, args):
         """Start the Game"""
-        # player_name = input("What is your name?")
-        # kingdom_name = input("What is your kingdom's name?")
 
         if self.model.state == model.Game.STATE_INITIALISED:
             if confirm("Are you sure you want to stop the current game") is False:
                 return
+            else:
+                self.model.do_game_over()
 
-        player_name = "Player 1"
+        player_name = input("What is your name?")
         kingdom_name = "Yellow River Kingdom"
         self.model.initialise(kingdom_name, player_name)
         self.view.initialise()
@@ -55,6 +65,8 @@ class GameCLI(cmd.Cmd):
             event = self.model.get_next_event()
 
         print("\nType 'play' to get started or 'instructions' got get some help.\n")
+
+        self.view.print_high_score_table()
 
     def do_instructions(self, args):
         """Print the game instructions"""
