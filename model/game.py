@@ -59,12 +59,12 @@ class Game():
         self.player_name = None
         self.events = EventQueue()
 
-        # Create 3 high score tables
+        # Create 3 high score tables (HSTs)
         self.hst_population = HighScoreTable("Biggest Population", prefix="people=")
         self.hst_total_food = HighScoreTable("Largest Food Amassed", prefix="food=")
         self.hst_length_of_rule = HighScoreTable("Longest Reign", prefix="seasons=")
 
-        # Load from disk if available
+        # Load HSTs from disk if available
         self.hst_population.load()
         self.hst_total_food.load()
         self.hst_length_of_rule.load()
@@ -124,19 +124,28 @@ class Game():
         return next_event
 
     def play(self, dyke, fields, defend, rice_planted):
+        """ Play the next round """
+
         if self.state != Game.STATE_INITIALISED:
             raise Exception("Can't play the game in current state {0}".format(self.state))
 
+        # Run the current seaon with the user specified inputs
         self.kingdom.do_season(dyke, fields, defend, rice_planted)
 
+        # If no people left or no food left game over!
         if self.kingdom.population <= 0 or self.kingdom.total_food <= 0:
             self.do_game_over()
 
     def do_game_over(self):
+
+        # If the game was actually started then update HSTs
+        if self.state == Game.STATE_INITIALISED:
+            self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
+            self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
+            self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
+
+        # Set state to Game Over
         self.state = Game.STATE_GAME_OVER
-        self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
-        self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
-        self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
 
     def print_high_scores(self):
         self.hst_length_of_rule.print()
