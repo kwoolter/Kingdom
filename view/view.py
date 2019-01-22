@@ -121,6 +121,31 @@ class TextView():
 
         print("\n")
 
+    def print_ritual(self):
+
+        if self.model.state == model.Game.STATE_LOADED:
+            raise Exception("Game not in a state to perform ritual ({0}).".format(self.model.state))
+
+        print(Fore.CYAN + Back.BLACK)
+
+        msg = "{0}, we have survived for {1} years under your glorious control.".format(self.model.player_name,
+                                                                                        self.model.kingdom.year)
+        type("\n\n" + self.wrapper.fill(msg))
+
+        msg = "By an ancient custom we must offer you the chance to lay down this terrible burden and resume a normal life."
+        type("\n\n" + self.wrapper.fill(msg))
+
+        msg = "In the time honoured fashion I will now ask the ritual question:"
+        type("\n\n" + self.wrapper.fill(msg))
+
+        msg = "Are you prepared to accept the burden of decision again?"
+        type("\n\n" + self.wrapper.fill(msg) + "\n")
+
+        msg = "You need only answer Yes or No for the people will understand your reasons."
+        type("\n\n" + self.wrapper.fill(msg) + "\n")
+
+        print(Fore.WHITE + Back.BLACK)
+
     def print_game_over(self):
 
         print(Fore.LIGHTYELLOW_EX + Back.BLACK)
@@ -139,11 +164,15 @@ class TextView():
             type("\n" + msg + "\n\n")
 
     def print_high_score_table(self):
-        print(Fore.BLACK + Back.LIGHTYELLOW_EX)
-        msg = " "* TextView.WIDTH + "\n" + "{0:^" + str(TextView.WIDTH) + "}" + "\n" + " "* TextView.WIDTH
-        msg = msg.format("Kingdom Legends")
-        type("\n" + msg + "\n\n")
-        print(Fore.WHITE + Back.BLACK)
+
+        msg = " " * TextView.WIDTH
+        print("\n" + Back.LIGHTYELLOW_EX + Fore.BLACK + msg + Back.BLACK)
+        msg = "{0:^" + str(TextView.WIDTH) + "}"
+        msg = msg.format("***  Kingdom Legends  ***")
+        print(Back.LIGHTYELLOW_EX + msg + Back.BLACK)
+        msg = Back.LIGHTYELLOW_EX + " " * TextView.WIDTH + Back.BLACK
+        print(msg + "\n" + Fore.LIGHTWHITE_EX)
+
         self.model.print_high_scores()
 
 

@@ -70,7 +70,8 @@ class GameCLI(cmd.Cmd):
 
     def do_instructions(self, args):
         """Print the game instructions"""
-        self.view.print_instructions()
+        self.view.print_ritual()
+        #self.view.print_instructions()
 
     def do_play(self, args):
         """Play the next round of the game"""
