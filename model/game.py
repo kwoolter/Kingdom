@@ -43,6 +43,10 @@ class Game():
     STATE_GAME_OVER = "Game Over"
 
     HST_AUTO_SAVE = True
+    HST_DEFAULT_ENTRIES = (("Richard G Warner", 2,200,4000),
+                           ("Jerry Temple-Fry", 3, 210, 5000),
+                           ("Tom Hartley", 4, 220, 6000)
+                           )
 
     # Events
     EVENT_TICK = "Tick"
@@ -55,13 +59,28 @@ class Game():
         self.player_name = None
         self.events = EventQueue()
 
+        # Create 3 high score tables
         self.hst_population = HighScoreTable("Biggest Population", prefix="people=")
         self.hst_total_food = HighScoreTable("Largest Food Amassed", prefix="food=")
         self.hst_length_of_rule = HighScoreTable("Longest Reign", prefix="seasons=")
 
+        # Load from disk if available
         self.hst_population.load()
         self.hst_total_food.load()
         self.hst_length_of_rule.load()
+
+        # If no entries in each HST then add the default legends!
+        if self.hst_length_of_rule.entries == 0:
+            for name, reign, max_population, max_food in Game.HST_DEFAULT_ENTRIES:
+                self.hst_length_of_rule.add(name, reign)
+
+        if self.hst_population.entries == 0:
+            for name, reign, max_population, max_food in Game.HST_DEFAULT_ENTRIES:
+                self.hst_population.add(name, max_population)
+
+        if self.hst_total_food.entries == 0:
+            for name, reign, max_population, max_food in Game.HST_DEFAULT_ENTRIES:
+                self.hst_total_food.add(name, max_food)
 
     def initialise(self, kingdom_name: str, player_name: str = "John Doe"):
         self.state = Game.STATE_INITIALISED
@@ -115,7 +134,6 @@ class Game():
 
     def do_game_over(self):
         self.state = Game.STATE_GAME_OVER
-        print("Updating HSTs....")
         self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
         self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
         self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
@@ -482,7 +500,7 @@ class Kingdom():
 
     def __str__(self):
 
-        _str = "The Kingdom of {0}: year={1}, season={2}, population={3:,}, food={4:,}".format(self.name,
+        _str = "{0}: {2} season or year {1}, population={3:,}, food={4:,}".format(self.name,
                                                                                                self.year,
                                                                                                self.current_season,
                                                                                                self.population,
@@ -629,6 +647,10 @@ class HighScoreTable():
         self.max_size = max_size
         self.prefix = prefix
         self.table = []
+
+    @property
+    def entries(self):
+        return len(self.table)
 
     def add(self, name: str, score: float, auto_save=False):
 

@@ -53,6 +53,8 @@ class GameCLI(cmd.Cmd):
         try:
 
             if confirm("Are you sure you want to quit?") is True:
+                print("\nThanks for playing.")
+                print(str(self.model))
                 self.model.do_game_over()
                 print("\nBye bye...")
                 exit(0)
