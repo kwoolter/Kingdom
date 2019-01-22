@@ -128,9 +128,9 @@ class TextView():
 
         print(Fore.CYAN + Back.BLACK)
 
-        msg = "{0}, we have survived for {1} years under your glorious control.".format(self.model.player_name,
-                                                                                        self.model.kingdom.year)
-        type("\n\n" + self.wrapper.fill(msg))
+        msg = "{0}, we have survived for {1} seasons under your glorious control.".format(self.model.player_name,
+                                                                                        self.model.kingdom.seasons)
+        type("\n" + self.wrapper.fill(msg))
 
         msg = "By an ancient custom we must offer you the chance to lay down this terrible burden and resume a normal life."
         type("\n\n" + self.wrapper.fill(msg))
@@ -139,7 +139,7 @@ class TextView():
         type("\n\n" + self.wrapper.fill(msg))
 
         msg = "Are you prepared to accept the burden of decision again?"
-        type("\n\n" + self.wrapper.fill(msg) + "\n")
+        type("\n\n" + self.wrapper.fill(msg))
 
         msg = "You need only answer Yes or No for the people will understand your reasons."
         type("\n\n" + self.wrapper.fill(msg) + "\n")

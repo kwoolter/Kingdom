@@ -377,12 +377,13 @@ class Season():
 
 
 class Kingdom():
-    VILLAGES = 3
+
     INITIAL_SEASON = Season.WINTER
+    RITUAL_FREQUENCY = 12
+    EVENT_RITUAL = "RITUAL TIME"
 
     def __init__(self, name: str):
         self.name = name
-        self.villages = None
         self.year = 0
         self.seasons = 0
         self.years = {}
@@ -402,11 +403,6 @@ class Kingdom():
 
         self.years[self.year] = {}
         self.years[self.year][self.current_season.name] = self.current_season
-
-        self.villages = []
-        for i in range(Kingdom.VILLAGES):
-            self.villages.append(Village())
-            self.villages[i].initialise()
 
         self.map.initliaise()
 
@@ -480,6 +476,10 @@ class Kingdom():
             self.year += 1
             self.years[self.year] = {}
 
+        # See if it is time for a period ritual
+        if self.seasons % Kingdom.RITUAL_FREQUENCY == 0:
+            self.add_event(Event(Kingdom.EVENT_RITUAL,"{0} seasons have passed.  Ritual time!".format(Kingdom.RITUAL_FREQUENCY),Event.GAME))
+
     def __str__(self):
 
         _str = "The Kingdom of {0}: year={1}, season={2}, population={3:,}, food={4:,}".format(self.name,
@@ -493,31 +493,6 @@ class Kingdom():
                                                                                     self._total_food_hwm)
 
         return _str
-
-
-class Village():
-    INITIAL_RICE = 500
-    INITIAL_VILLAGERS = 200
-
-    count = 0
-
-    def __init__(self, name: str = None):
-        Village.count += 1
-        self.villagers = 0
-        self.rice = 0
-
-        if name is None:
-            self.name = "Village {0}".format(Village.count)
-        else:
-            self.name = name
-
-    def __str__(self):
-        _str = "{0}: villagers={1}, rice={2}".format(self.name, self.villagers, self.rice)
-        return _str
-
-    def initialise(self, villagers: int = INITIAL_VILLAGERS, rice: int = INITIAL_RICE):
-        self.villagers = villagers
-        self.rice = rice
 
 
 class Map():
