@@ -93,8 +93,7 @@ class GameCLI(cmd.Cmd):
         """Print the game instructions"""
 
         try:
-            self.view.print_ritual()
-            #self.view.print_instructions()
+           self.view.print_instructions()
         except Exception as err:
             print(str(err))
 
