@@ -60,17 +60,29 @@ class ObjectGraphics:
 
 
 class TextView():
+
     WIDTH = 50
+    DEFAULT_COLOURS = Fore.LIGHTWHITE_EX + Back.BLACK
+    ALERT_COLOURS = Fore.LIGHTYELLOW_EX + Back.BLACK
+    RITUAL_COLOURS = Fore.LIGHTCYAN_EX + Back.BLACK
 
     def __init__(self, model: model.Game):
         self.model = model
         self.wrapper = textwrap.TextWrapper(width=TextView.WIDTH)
         self.map_view = None
-        init(convert=True)
+
+        if sys.stdout.isatty() is False:
+            init(convert=False, strip=False)
+        else:
+            init(convert=True)
+
+        print(TextView.DEFAULT_COLOURS)
 
     def initialise(self):
         self.map_view = MapView(self.model.kingdom.map)
         self.map_view.initialise()
+
+        print(TextView.DEFAULT_COLOURS)
 
     def print_census(self):
 
@@ -79,7 +91,7 @@ class TextView():
 
         kingdom = self.model.kingdom
 
-        print(Fore.LIGHTWHITE_EX + Back.BLACK)
+        print(TextView.DEFAULT_COLOURS)
 
         header = "\n{0:^" + str(TextView.WIDTH) + "}\n"
         type(header.format("Census Results"))
@@ -90,6 +102,9 @@ class TextView():
         print("\nThere are {0} baskets of rice in the village stores.".format(kingdom.total_food))
 
     def print_season(self):
+
+        print(TextView.DEFAULT_COLOURS)
+
         season_view = SeasonTextView(self.model.kingdom.previous_season)
         season_view.print()
 
@@ -97,10 +112,11 @@ class TextView():
 
     def print_map(self):
         self.map_view.print()
+        print(TextView.DEFAULT_COLOURS)
 
     def print_instructions(self):
 
-        print(Fore.LIGHTWHITE_EX + Back.BLACK)
+        print(TextView.DEFAULT_COLOURS)
 
         type("\n\n" + self.wrapper.fill(
             "The kingdom is three villages. It is between the Yellow River and the mountains."))
@@ -126,7 +142,7 @@ class TextView():
         if self.model.state == model.Game.STATE_LOADED:
             raise Exception("Game not in a state to perform ritual ({0}).".format(self.model.state))
 
-        print(Fore.CYAN + Back.BLACK)
+        print(TextView.RITUAL_COLOURS)
 
         msg = "{0}, we have survived for {1} seasons under your glorious control.".format(self.model.player_name,
                                                                                         self.model.kingdom.seasons)
@@ -144,11 +160,11 @@ class TextView():
         msg = "You need only answer Yes or No for the people will understand your reasons."
         type("\n\n" + self.wrapper.fill(msg) + "\n")
 
-        print(Fore.WHITE + Back.BLACK)
+        print(TextView.DEFAULT_COLOURS)
 
     def print_game_over(self):
 
-        print(Fore.LIGHTYELLOW_EX + Back.BLACK)
+        print(TextView.ALERT_COLOURS)
 
         kingdom = self.model.kingdom
 
@@ -163,7 +179,11 @@ class TextView():
 
             type("\n" + msg + "\n\n")
 
+        print(TextView.DEFAULT_COLOURS)
+
     def print_high_score_table(self):
+
+        print(TextView.DEFAULT_COLOURS)
 
         msg = " " * TextView.WIDTH
         print("\n" + Back.LIGHTYELLOW_EX + Fore.BLACK + msg + Back.BLACK)
@@ -171,13 +191,17 @@ class TextView():
         msg = msg.format("***  Kingdom Legends  ***")
         print(Back.LIGHTYELLOW_EX + msg + Back.BLACK)
         msg = Back.LIGHTYELLOW_EX + " " * TextView.WIDTH + Back.BLACK
-        print(msg + "\n" + Fore.LIGHTWHITE_EX)
+        print(msg + "\n" + TextView.DEFAULT_COLOURS)
 
         self.model.print_high_scores()
+
+        print(TextView.DEFAULT_COLOURS)
 
 
 class SeasonTextView():
     WIDTH = 50
+    DEFAULT_COLOURS = Fore.LIGHTWHITE_EX + Back.BLACK
+    ALERT_COLOURS = Fore.LIGHTYELLOW_EX + Back.BLACK
 
     def __init__(self, season: model.Season):
         self.season = season
@@ -185,7 +209,7 @@ class SeasonTextView():
 
     def print(self):
 
-        print(Fore.LIGHTWHITE_EX + Back.BLACK)
+        print(SeasonTextView.DEFAULT_COLOURS)
 
         header = "\n{0:^" + str(SeasonTextView.WIDTH) + "}\n"
         type(header.format("Village Leader's Report"))
@@ -206,7 +230,7 @@ class SeasonTextView():
             msg = "You got off lightly!"
 
         if msg is not None:
-            print(Fore.LIGHTYELLOW_EX)
+            print(SeasonTextView.ALERT_COLOURS)
             banner = "{0:^" + str(SeasonTextView.WIDTH) + "}"
             print("\n" + banner.format(msg))
 
@@ -218,11 +242,11 @@ class SeasonTextView():
         elif t < 2:
             msg = "Starvation Imminent!"
         if msg is not None:
-            print(Fore.LIGHTYELLOW_EX)
+            print(SeasonTextView.ALERT_COLOURS)
             banner = "{0:^" + str(SeasonTextView.WIDTH) + "}"
             print("\n" + banner.format(msg))
 
-        print(Fore.LIGHTWHITE_EX + Back.BLACK)
+        print(SeasonTextView.DEFAULT_COLOURS)
 
         # Print status
         type("\n" + self.wrapper.fill(
@@ -236,8 +260,6 @@ class SeasonTextView():
             abs(self.season.food_changes[model.Season.RICE_FLOODED])))
         print("Baskets of rice lost during the attacks: {0}".format(
             abs(self.season.food_changes[model.Season.RICE_STOLEN])))
-
-        print("")
 
 
 class MapView():
