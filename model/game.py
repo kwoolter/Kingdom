@@ -172,6 +172,20 @@ class Season():
     RICE_FLOODED = "rice flooded"
     RICE_EATEN = "rice eaten"
 
+    # BONUS STUFF
+    FOOD_OVERSTORAGE_RATIO = 1000
+    POPULATION_OVERCROWDING_RATIO = 100
+
+    DEATH_BY_DISEASE = "disease deaths"
+    DEATH_BY_WAR = "war deaths"
+    DEATH_BY_WINTER = "frozen deaths"
+    NEW_POPULATION_EVENTS = (DEATH_BY_DISEASE,DEATH_BY_WAR, DEATH_BY_WINTER)
+
+    RICE_ROTTEN = "rice rotten"
+    RICE_LOCUST_PLAGUE = "rice locust swarm"
+    NEW_FOOD_EVENTS = (RICE_ROTTEN, RICE_LOCUST_PLAGUE)
+
+
     def __init__(self, name: str, year: int):
         self.name = name
         self.year = year
@@ -186,7 +200,15 @@ class Season():
         self.food_changes = {Season.RICE_GROWN: 0,
                              Season.RICE_EATEN: 0,
                              Season.RICE_STOLEN: 0,
-                             Season.RICE_FLOODED: 0}
+                             Season.RICE_FLOODED: 0,
+                             Season.RICE_ROTTEN: 0}
+
+        # Initialise New BONUS STUFF
+        for event in Season.NEW_POPULATION_EVENTS:
+            self.population_changes[event] = 0
+
+        for event in Season.NEW_FOOD_EVENTS:
+            self.food_changes[event] = 0
 
     def __str__(self):
         return "{0} of year {1}".format(self.name, self.year)
@@ -220,6 +242,8 @@ class Season():
         else:
             self.calculate_flood()
             self.calculate_attack()
+
+        self.calculate_bonus_stuff()
 
         self.calculate_season_end()
 
@@ -320,6 +344,89 @@ class Season():
                 self.rice_planted = (10 - flood_index) / 10
 
             self.rice_planted = int(self.rice_planted)
+
+    # New bonus stuff not in the original game!!!
+    def calculate_bonus_stuff(self):
+
+        population = self.kingdom.population
+        total_food = self.kingdom.total_food
+        village_count = self.kingdom.village_count
+
+        print("Bonus stuff: people={0}, food={1}, villages={2}".format(population,
+                                                                       total_food,
+                                                                       village_count))
+
+        # Find ratio of people to villages
+        crowding = population / village_count
+
+        # If the villages are overcrowded...
+        if crowding >= Season.POPULATION_OVERCROWDING_RATIO:
+            # If it is winter kill people off in the villages
+            if self.name == Season.WINTER:
+                people_lost = random.randint(10, int(self.defend * crowding/population)) * -1
+                self.population_changes[Season.DEATH_BY_WINTER] = people_lost
+                self.kingdom.map.add_objects(Map.GRAVE)
+
+                self.kingdom.add_event(Event(Season.DEATH_BY_WINTER,
+                                             "{0} people freeze to death over the winter as not enough housing in the villages!".format(
+                                                 abs(people_lost)),
+                                             Event.GAME))
+
+            # If if it Growing season...????
+            elif self.name == Season.GROWING:
+                pass
+
+            # If if it Harvest season kill people off in the fields
+            elif self.name == Season.HARVEST:
+
+                people_lost = random.randint(10, int(self.fields * crowding/population)) * -1
+                self.population_changes[Season.DEATH_BY_WINTER] = people_lost
+                self.kingdom.map.add_objects(Map.GRAVE)
+
+                self.kingdom.add_event(Event(Season.DEATH_BY_DISEASE,
+                                             "{0} people die of disease in the fields!".format(
+                                                 abs(people_lost)),
+                                             Event.GAME))
+
+
+
+
+        # Find ratio of food to villages
+        crammed = total_food/village_count
+
+        # If your store rooms are crammed full...
+        if crammed >= Season.FOOD_OVERSTORAGE_RATIO:
+
+            # If it is winter rot food in the store rooms
+            if self.name == Season.WINTER:
+                rice_lost = random.randint(10, int(total_food * crammed/total_food)) * -1
+                self.food_changes[Season.RICE_ROTTEN] = rice_lost
+
+                self.kingdom.add_event(Event(Season.RICE_ROTTEN,
+                                             "{0} baskets of rice rot over the Winter in your crammed store rooms!".format(abs(rice_lost)),
+                                             Event.GAME))
+
+            # If it is the growing seasons destroy planted rice
+            elif self.name == Season.GROWING:
+                rice_lost = random.randint(10, int(self.rice_planted * crammed/total_food)) * -1
+                self.food_changes[Season.RICE_LOCUST_PLAGUE] = rice_lost
+                self.kingdom.map.add_objects(Map.LOCUST)
+
+                self.kingdom.add_event(Event(Season.RICE_LOCUST_PLAGUE,
+                                             "A plague of locusts attacks your fields and destroys {0} baskets of rice!".format(
+                                                 abs(rice_lost)),
+                                             Event.GAME))
+
+            # If it is th harvest season destroy rice in the store rooms
+            elif self.name == Season.HARVEST:
+                rice_lost = random.randint(10,int(total_food * crammed/100))
+                self.food_changes[Season.RICE_LOCUST_PLAGUE] = rice_lost
+                self.kingdom.map.add_objects(Map.LOCUST)
+
+                self.kingdom.add_event(Event("LOCUST PLAGUE ATTACKS",
+                                             "A plague of locusts attacks your villages and destroys {0} baskets of stored rice!".format(abs(rice_lost)),
+                                             Event.GAME))
+
 
     # Food, Births and Deaths
     def calculate_season_end(self):
@@ -451,6 +558,11 @@ class Kingdom():
         self._food = new
         self._total_food_hwm = max(self._total_food_hwm, new)
 
+    @property
+    def village_count(self):
+        return len(Map.VILLAGES)
+
+
     def add_event(self, new_event: Event):
         self._events.add_event(new_event)
 
@@ -533,6 +645,10 @@ class Map():
     WATER = "~"
     MOUNTAIN = "^"
     THIEF = "T"
+    LOCUST = "@"
+    GRAVE = "+"
+
+    VALID_OBJECTS = (LOCUST, GRAVE, THIEF)
 
     THIEVES = ((31, 13), (31, 15), (32, 16), (32, 17))
     VILLAGES = ((13, 8), (21, 12), (22, 18))
@@ -643,6 +759,17 @@ class Map():
             self.set(fx, fy, Map.WATER)
 
         return len(flooded_villages)
+
+    def add_objects(self, object_type):
+
+        if object_type not in Map.VALID_OBJECTS:
+            raise Exception("Trying to add invalid object type {0} to the map!".format(object_type))
+
+        for i in range(0,20):
+            x = random.randint(Map.DAM_X + 2, Map.MOUNTAIN_X - 2)
+            y = random.randint(3, self.height - 1)
+            if self.get(x,y) is None:
+                self.set(x,y,object_type)
 
 
 from operator import itemgetter

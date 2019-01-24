@@ -37,7 +37,7 @@ Subsequently I found the source code here:-
 <img height="250" width="400" src="https://raw.githubusercontent.com/kwoolter/Kingdom/master/BBC%20Basic/bbc_screenshot.PNG" alt="game1">
 
 ### Code
-The orignal code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
+The original code is very compact, has virtually no comments, uses short variable names and a lot of `GOTO` flow control.
 
 Here is an example procedure that shows the logic used to calculate how much rice was planted and harvested each season (`G`) 
 and how many people died from starvation (`ST`):

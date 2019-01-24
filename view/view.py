@@ -45,6 +45,8 @@ class ObjectGraphics:
         model.Map.VILLAGE: "#",
         model.Map.MOUNTAIN: "^",
         model.Map.THIEF: "T",
+        model.Map.LOCUST:"@",
+        model.Map.GRAVE:"+",
         None: " "
 
     }
@@ -55,7 +57,9 @@ class ObjectGraphics:
         model.Map.VILLAGE: (Fore.LIGHTGREEN_EX, Back.GREEN),
         model.Map.MOUNTAIN: (Fore.RED, Back.BLACK),
         model.Map.THIEF: (Fore.RED, Back.BLACK),
-        None: (Fore.BLACK, Back.BLACK),
+        model.Map.LOCUST: (Fore.GREEN, Back.BLACK),
+        model.Map.GRAVE: (Fore.WHITE, Back.BLACK),
+        None: (Fore.LIGHTWHITE_EX, Back.BLACK),
     }
 
 
