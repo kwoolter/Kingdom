@@ -173,7 +173,9 @@ class Season():
     RICE_EATEN = "rice eaten"
 
     # BONUS STUFF
+    FOOD_OVERSTORAGE_YEAR = 0
     FOOD_OVERSTORAGE_RATIO = 1000
+    POPULATION_OVERCROWDING_YEAR = 0
     POPULATION_OVERCROWDING_RATIO = 100
 
     DEATH_BY_DISEASE = "disease deaths"
@@ -360,10 +362,13 @@ class Season():
         crowding = population / village_count
 
         # If the villages are overcrowded...
-        if crowding >= Season.POPULATION_OVERCROWDING_RATIO:
-            # If it is winter kill people off in the villages
+        if self.year >= Season.POPULATION_OVERCROWDING_YEAR and \
+                crowding >= Season.POPULATION_OVERCROWDING_RATIO:
+
+            # If it is winter kill people off left in the villages
             if self.name == Season.WINTER:
-                people_lost = random.randint(10, int(self.defend * crowding/population)) * -1
+                people_lost = random.randint(village_count * 10,
+                                             int(self.defend * (crowding - Season.POPULATION_OVERCROWDING_RATIO)/crowding)) * -1
                 self.population_changes[Season.DEATH_BY_WINTER] = people_lost
                 self.kingdom.map.add_objects(Map.GRAVE)
 
@@ -379,7 +384,8 @@ class Season():
             # If if it Harvest season kill people off in the fields
             elif self.name == Season.HARVEST:
 
-                people_lost = random.randint(10, int(self.fields * crowding/population)) * -1
+                people_lost = random.randint(village_count * 10,
+                                             int(self.fields * (crowding - Season.POPULATION_OVERCROWDING_RATIO)/crowding)) * -1
                 self.population_changes[Season.DEATH_BY_WINTER] = people_lost
                 self.kingdom.map.add_objects(Map.GRAVE)
 
@@ -399,7 +405,8 @@ class Season():
 
             # If it is winter rot food in the store rooms
             if self.name == Season.WINTER:
-                rice_lost = random.randint(10, int(total_food * crammed/total_food)) * -1
+                rice_lost = random.randint(village_count * 10,
+                                           int(total_food * (crammed-Season.FOOD_OVERSTORAGE_RATIO)/crammed)) * -1
                 self.food_changes[Season.RICE_ROTTEN] = rice_lost
 
                 self.kingdom.add_event(Event(Season.RICE_ROTTEN,
@@ -408,7 +415,8 @@ class Season():
 
             # If it is the growing seasons destroy planted rice
             elif self.name == Season.GROWING:
-                rice_lost = random.randint(10, int(self.rice_planted * crammed/total_food)) * -1
+                rice_lost = random.randint(village_count * 10,
+                                           int(self.rice_planted * (crammed-Season.FOOD_OVERSTORAGE_RATIO)/crammed)) * -1
                 self.food_changes[Season.RICE_LOCUST_PLAGUE] = rice_lost
                 self.kingdom.map.add_objects(Map.LOCUST)
 
@@ -419,7 +427,8 @@ class Season():
 
             # If it is th harvest season destroy rice in the store rooms
             elif self.name == Season.HARVEST:
-                rice_lost = random.randint(10,int(total_food * crammed/100))
+                rice_lost = random.randint(village_count * 10,
+                                           int(total_food * (crammed-Season.FOOD_OVERSTORAGE_RATIO)/crammed))
                 self.food_changes[Season.RICE_LOCUST_PLAGUE] = rice_lost
                 self.kingdom.map.add_objects(Map.LOCUST)
 
