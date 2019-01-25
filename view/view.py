@@ -194,6 +194,9 @@ class TextView():
         msg = "{0:^" + str(TextView.WIDTH) + "}"
         msg = msg.format("***  Kingdom Legends  ***")
         print(Back.LIGHTYELLOW_EX + Fore.BLACK + msg + Back.BLACK)
+        msg = "{0:^" + str(TextView.WIDTH) + "}"
+        msg = msg.format("***  " + self.model.mode + "  ***")
+        print(Back.LIGHTYELLOW_EX + Fore.BLACK + msg + Back.BLACK)
         msg = Back.LIGHTYELLOW_EX + " " * TextView.WIDTH + Back.BLACK
         print(msg + "\n" + TextView.DEFAULT_COLOURS)
 

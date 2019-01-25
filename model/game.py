@@ -1,6 +1,7 @@
 import collections
 import random
-
+from .game_stats import *
+from .StatEngine import *
 
 class Event():
     # Event Types
@@ -36,6 +37,12 @@ class EventQueue():
 
 
 class Game():
+
+    # Modes
+    GAME_CLASSIC = "Classic"
+    GAME_REMASTERED = "Remastered"
+    GAME_MODES = (GAME_CLASSIC, GAME_REMASTERED)
+
     # States
     STATE_LOADED = "loaded"
     STATE_INITIALISED = "initialised"
@@ -58,6 +65,7 @@ class Game():
         self.kingdom = None
         self.player_name = None
         self.events = EventQueue()
+        self._stats = StatEngine(self.name)
 
         # Create 3 high score tables (HSTs)
         self.hst_population = HighScoreTable("Biggest Population", prefix="people=")
@@ -82,11 +90,21 @@ class Game():
             for name, reign, max_population, max_food in Game.HST_DEFAULT_ENTRIES:
                 self.hst_total_food.add(name, max_food)
 
-    def initialise(self, kingdom_name: str, player_name: str = "John Doe"):
+    def initialise(self, kingdom_name: str, player_name: str = "John Doe", mode = GAME_CLASSIC):
+        self.mode = mode
         self.state = Game.STATE_INITIALISED
         self.kingdom = Kingdom(kingdom_name)
         self.kingdom.initialise(self.events)
         self.player_name = player_name
+        self.load_stats()
+
+    def load_stats(self):
+        self._stats.add_stat(CoreStat("Season Count", "GAME", 1))
+        self._stats.add_stat(CurrentYear())
+        self._stats.add_stat(CurrentSeason())
+        self._stats.print()
+
+
 
     @property
     def state(self):
@@ -244,6 +262,7 @@ class Season():
         else:
             self.calculate_flood()
             self.calculate_attack()
+
 
         self.calculate_bonus_stuff()
 

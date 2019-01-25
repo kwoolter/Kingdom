@@ -74,7 +74,8 @@ class GameCLI(cmd.Cmd):
 
             player_name = input("What is your name?")
             kingdom_name = "Yellow River Kingdom"
-            self.model.initialise(kingdom_name, player_name)
+            mode = pick("Game Mode", model.Game.GAME_MODES)
+            self.model.initialise(kingdom_name, player_name, mode)
             self.view.initialise()
 
             event = self.model.get_next_event()
