@@ -20,7 +20,7 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 
 This Python re-write is radically different in structure to the original!  It is a total re-write! More to follow on this.
 * Uses `colorama` package to make the text output more exciting.
-* New **bonus content** added not available in the original game.
+* **REMASTERED** New bonus content added not available in the original game.
 
 ## BBC Micro Version
 
