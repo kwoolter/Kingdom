@@ -65,7 +65,7 @@ class Game():
         self.kingdom = None
         self.player_name = None
         self.events = EventQueue()
-        self._stats = StatEngine(self.name)
+        self._stats = KingdomStats()
 
         # Create 3 high score tables (HSTs)
         self.hst_population = HighScoreTable("Biggest Population", prefix="people=")
@@ -93,17 +93,10 @@ class Game():
     def initialise(self, kingdom_name: str, player_name: str = "John Doe", mode = GAME_CLASSIC):
         self.mode = mode
         self.state = Game.STATE_INITIALISED
-        self.kingdom = Kingdom(kingdom_name)
+        self.kingdom = Kingdom(kingdom_name, self._stats, mode)
         self.kingdom.initialise(self.events)
         self.player_name = player_name
-        self.load_stats()
-
-    def load_stats(self):
-        self._stats.add_stat(CoreStat("Season Count", "GAME", 1))
-        self._stats.add_stat(CurrentYear())
-        self._stats.add_stat(CurrentSeason())
-        self._stats.print()
-
+        self._stats.initialise()
 
 
     @property
@@ -209,6 +202,11 @@ class Season():
     def __init__(self, name: str, year: int):
         self.name = name
         self.year = year
+        self.dyke = 0
+        self.fields = 0
+        self.defend = 0
+        self.rice_planted = 0
+
         self.calculated = False
         self.population_changes = {Season.DEATH_STARVATION: 0,
                                    Season.DEATH_KILLED_BY_THIEVES: 0,
@@ -264,7 +262,7 @@ class Season():
             self.calculate_attack()
 
 
-        self.calculate_bonus_stuff()
+        #self.calculate_bonus_stuff()
 
         self.calculate_season_end()
 
@@ -540,28 +538,35 @@ class Season():
 
 class Kingdom():
 
+    # Modes
+    GAME_CLASSIC = "Classic"
+    GAME_REMASTERED = "Remastered"
+    GAME_MODES = (GAME_CLASSIC, GAME_REMASTERED)
+
     INITIAL_SEASON = Season.WINTER
     RITUAL_FREQUENCY = 12
     EVENT_RITUAL = "RITUAL TIME"
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, stats : KingdomStats, mode : str = GAME_CLASSIC):
         self.name = name
-        self.year = 0
-        self.seasons = 0
+        self.mode = mode
+        self.seasons = 1
         self.years = {}
         self.current_season = None
         self.previous_season = None
         self.map = Map()
+        self._stats = stats
 
     def initialise(self, event_queue: EventQueue):
         self._events = event_queue
-        self.year = 1
         self.current_season = self.previous_season = Season(Kingdom.INITIAL_SEASON, self.year)
         self._population_hwm = 0
         self._total_food_hwm = 0
 
         self.population = 300 + random.randint(0, 100)
-        self.food = 5000 + random.randint(0, 2000)
+        self.total_food = 5000 + random.randint(0, 2000)
+
+        self.update_stats()
 
         self.years[self.year] = {}
         self.years[self.year][self.current_season.name] = self.current_season
@@ -579,17 +584,35 @@ class Kingdom():
 
     @property
     def total_food(self):
-        return self._food
+        return self._total_food
 
     @total_food.setter
-    def food(self, new: int):
-        self._food = new
+    def total_food(self, new: int):
+        self._total_food = new
         self._total_food_hwm = max(self._total_food_hwm, new)
 
     @property
     def village_count(self):
         return len(Map.VILLAGES)
 
+    @property
+    def year(self):
+        return (self.seasons - 1) // 3 + 1
+
+    def update_stats(self):
+
+        print("Updating stats...")
+        self._stats.update_stat(KingdomStats.INPUT_SEASON_COUNT, self.seasons)
+        self._stats.update_stat(KingdomStats.INPUT_CURRENT_POPULATION, self.population)
+        self._stats.update_stat(KingdomStats.INPUT_CURRENT_FOOD, self.total_food)
+        self._stats.update_stat(KingdomStats.INPUT_VILLAGE_COUNT, self.village_count)
+
+        if self.previous_season is not None:
+
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_VILLAGES, self.previous_season.defend)
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_DYKE, self.previous_season.dyke)
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_FIELDS, self.previous_season.fields)
+            self._stats.update_stat(KingdomStats.INPUT_RICE_TO_PLANT, self.previous_season.rice_planted)
 
     def add_event(self, new_event: Event):
         self._events.add_event(new_event)
@@ -620,7 +643,7 @@ class Kingdom():
         # Remember how much rice we planted in the growing season and deduct from total food
         elif self.current_season.name == Season.GROWING:
             self.rice_planted = rice_planted
-            self.food -= rice_planted
+            self.total_food -= rice_planted
 
         # See what happens in this season
         self.current_season.calculate(self, dyke, fields, defend, self.rice_planted)
@@ -630,7 +653,11 @@ class Kingdom():
 
         # Make changes to population and food supplies
         self.population += self.current_season.population_change
-        self.food += self.current_season.food_change
+        self.total_food += self.current_season.food_change
+
+        # Remastered
+        if self.mode == Kingdom.GAME_REMASTERED:
+            self.do_remastered_events()
 
         # Move to the next season
         self.previous_season = self.current_season
@@ -640,12 +667,63 @@ class Kingdom():
 
         # If we got back to Winter we have started a new year!
         if self.current_season.name == Season.WINTER:
-            self.year += 1
             self.years[self.year] = {}
 
         # See if it is time for a period ritual
         if self.seasons % Kingdom.RITUAL_FREQUENCY == 0:
             self.add_event(Event(Kingdom.EVENT_RITUAL,"{0} seasons have passed.  Ritual time!".format(Kingdom.RITUAL_FREQUENCY),Event.GAME))
+
+
+    def do_remastered_events(self):
+
+        print("Updating stats...")
+        self._stats.update_stat(KingdomStats.INPUT_SEASON_COUNT, self.seasons)
+        self._stats.update_stat(KingdomStats.INPUT_CURRENT_POPULATION, self.population)
+        self._stats.update_stat(KingdomStats.INPUT_CURRENT_FOOD, self.total_food)
+        self._stats.update_stat(KingdomStats.INPUT_VILLAGE_COUNT, self.village_count)
+        self._stats.update_stat(KingdomStats.INPUT_RICE_ANNUAL_TITHES, 0.75)
+
+        if self.current_season is not None:
+
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_VILLAGES, self.current_season.defend)
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_DYKE, self.current_season.dyke)
+            self._stats.update_stat(KingdomStats.INPUT_PEOPLE_FIELDS, self.current_season.fields)
+            self._stats.update_stat(KingdomStats.INPUT_RICE_TO_PLANT, self.current_season.rice_planted)
+
+
+        self._stats.print()
+
+        population_changes = self._stats.get_stat(TotalPeopleChanges.NAME).value
+        food_changes = self._stats.get_stat(TotalFoodChanges.NAME).value
+
+        self.population += population_changes
+        self.total_food += food_changes
+
+        if population_changes != 0:
+
+            self.map.add_objects(Map.GRAVE)
+
+            self.add_event(Event("PEOPLE CHANGES", "Total {0} people changes".format(population_changes),"Remastered"))
+            for event_type in TotalPeopleChanges.OUTPUT_PEOPLE:
+                event = self._stats.get_stat(event_type)
+                if event.value != 0:
+                    self.add_event(Event(event.name,
+                                         event.description + "{0} people changes".format(event.value),
+                                         "Remastered"))
+
+        if food_changes != 0:
+
+            self.add_event(Event("FOOD CHANGES", "Total {0} food changes".format(food_changes), "Remastered"))
+            for event_type in TotalFoodChanges.OUTPUT_FOOD:
+                event = self._stats.get_stat(event_type)
+                if event.value != 0:
+
+                    if event.name == LocustFoodAttack.NAME:
+                        self.map.add_objects(Map.LOCUST)
+
+                    self.add_event(Event(event.name,
+                                         event.description + "{0} food changes".format(event.value),
+                                         "Remastered"))
 
     def __str__(self):
 

@@ -18,9 +18,11 @@ class BaseStat(object):
     DEAD = 0
 
     # Initiation of BaseStat, and parameters
-    def __init__(self, name: str, category: str, value: float, owner:int = 0, lifetime: int = EVERGREEN):
+    def __init__(self, name: str, category: str, value: float,
+                 description : str = "", owner:int = 0, lifetime: int = EVERGREEN):
         self.name = name
         self.category = category
+        self.description = description
         self._value = value
         self._old_value = value
         self.owner = owner
@@ -30,7 +32,11 @@ class BaseStat(object):
 
     # convert to string
     def __str__(self):
-        return self.name + "(" + self.category + ")" + "=" + str(self._value)
+        _str = self.name + "(" + self.category + ")" + "=" + str(self._value)
+        if self.description is not "":
+            _str + " (" + self.description + ")"
+
+        return _str
 
     # A property style getter
     @property
@@ -51,10 +57,11 @@ class CoreStat(BaseStat):
     """
 
     # Constructor
-    def __init__(self, name: str, category: str, value: float, owner=0, lifetime=BaseStat.EVERGREEN):
+    def __init__(self, name: str, category: str, value: float,
+                 description : str = "", owner=0, lifetime=BaseStat.EVERGREEN):
 
         # Initialise the parent class
-        super(CoreStat, self).__init__(name, category, value, owner, lifetime)
+        super(CoreStat, self).__init__(name, category, value, description, owner, lifetime)
 
         # Define an protected empty set that will contain the listeners for this stat
         self._listeners = set()
@@ -142,10 +149,10 @@ This class is an abstract class so you need to inherit from it and:-
 
 class DerivedStat(CoreStat):
     # Constructor
-    def __init__(self, name: str, category: str):
+    def __init__(self, name: str, category: str, description : str = ""):
 
         # Initialise the parent class
-        super(DerivedStat, self).__init__(name, category, None)
+        super(DerivedStat, self).__init__(name, category, None, description)
 
         # This set stores the names of the stats that the derived class ins interested in
         self._baseStatNames = set()
@@ -459,7 +466,10 @@ class StatEngine:
     # Print out the contents of the container
     #
     def print(self):
+
         output_width = 70
+
+        print((" " + self.name + " ").center(output_width, "-"))
 
         # Create an empty dictionary that will hold the stats keyed by category
         stats_by_category = {}
@@ -488,12 +498,4 @@ class StatEngine:
             for stat_name in sorted(stats.keys()):
                 stat = stats[stat_name]
                 print("\t"+ stat.name + "=" + str(stat.value))
-
-
-
-
-
-
-
-
 
