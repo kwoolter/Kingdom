@@ -543,6 +543,7 @@ class Kingdom():
     GAME_MODES = (GAME_CLASSIC, GAME_REMASTERED)
 
     INITIAL_SEASON = Season.WINTER
+    INITIAL_VILLAGE_COUNT = 3
     RITUAL_FREQUENCY = 12
     EVENT_RITUAL = "RITUAL TIME"
 
@@ -550,6 +551,7 @@ class Kingdom():
         self.name = name
         self.mode = mode
         self.seasons = 1
+        self.village_count = 0
         self.years = {}
         self.current_season = None
         self.previous_season = None
@@ -565,12 +567,14 @@ class Kingdom():
         self.population = 300 + random.randint(0, 100)
         self.total_food = 5000 + random.randint(0, 2000)
 
+        self.village_count = Kingdom.INITIAL_VILLAGE_COUNT
+
         self.update_stats()
 
         self.years[self.year] = {}
         self.years[self.year][self.current_season.name] = self.current_season
 
-        self.map.initliaise()
+        self.map.initialise(village_count=self.village_count)
 
     @property
     def population(self):
@@ -589,10 +593,6 @@ class Kingdom():
     def total_food(self, new: int):
         self._total_food = new
         self._total_food_hwm = max(self._total_food_hwm, new)
-
-    @property
-    def village_count(self):
-        return len(Map.VILLAGES)
 
     @property
     def year(self):
@@ -623,7 +623,7 @@ class Kingdom():
     def do_season(self, dyke: int = 0, fields: int = 0, defend: int = 0, rice_planted: int = 0):
 
         # Reset the map
-        self.map.initliaise()
+        self.map.initialise(village_count=self.village_count)
 
         if rice_planted > self.total_food:
             raise Exception(
@@ -692,11 +692,21 @@ class Kingdom():
 
         self._stats.print()
 
+        self.map.add_objects(Map.EARTH, 50)
+
         population_changes = self._stats.get_stat(TotalPeopleChanges.NAME).value
         food_changes = self._stats.get_stat(TotalFoodChanges.NAME).value
 
         self.population += population_changes
         self.total_food += food_changes
+
+        new_village_count = self._stats.get_stat(NewVillageCount.NAME)
+
+        if new_village_count.value > self.village_count:
+            self.village_count = min(new_village_count.value, len(Map.VILLAGES))
+            self.add_event(Event(new_village_count.name,
+                                 new_village_count.description,
+                                 "Remastered"))
 
         if population_changes != 0:
 
@@ -706,6 +716,11 @@ class Kingdom():
             for event_type in TotalPeopleChanges.OUTPUT_PEOPLE:
                 event = self._stats.get_stat(event_type)
                 if event.value != 0:
+
+                    if event.name == FreakWinter.NAME:
+                        self.map.add_objects(Map.SNOW, 50)
+                        self.map.add_objects(Map.ICE, 50)
+
                     self.add_event(Event(event.name,
                                          event.description + "{0} people changes".format(event.value),
                                          "Remastered"))
@@ -719,6 +734,9 @@ class Kingdom():
 
                     if event.name == LocustFoodAttack.NAME:
                         self.map.add_objects(Map.LOCUST)
+                        self.map.add_objects(Map.EARTH)
+                    elif event.name == HarvestDrought.NAME:
+                        self.map.add_objects(Map.EARTH, 50)
 
                     self.add_event(Event(event.name,
                                          event.description + "{0} food changes".format(event.value),
@@ -752,23 +770,29 @@ class Map():
     THIEF = "T"
     LOCUST = "@"
     GRAVE = "+"
+    SNOW = "*"
+    ICE = "."
+    EARTH = ":"
 
-    VALID_OBJECTS = (LOCUST, GRAVE, THIEF)
+    VALID_OBJECTS = (LOCUST, GRAVE, THIEF, SNOW, EARTH, ICE)
 
     THIEVES = ((31, 13), (31, 15), (32, 16), (32, 17))
-    VILLAGES = ((13, 8), (21, 12), (22, 18))
+    VILLAGES = ((13, 8), (21, 12), (22, 18), (11, 15), (20,5), (11,20))
 
     def __init__(self):
 
         self.map = []
 
-    def initliaise(self):
+    def initialise(self, village_count : int= 3):
+
+        self.village_count = min(village_count, len(Map.VILLAGES))
 
         # Clear the map squares
         self.map = [[None for y in range(0, Map.HEIGHT)] for x in range(0, Map.WIDTH)]
 
         # Add the villages to the map
-        for vx, vy in Map.VILLAGES:
+        for i in range(0, self.village_count):
+            vx, vy = Map.VILLAGES[i]
             for y in range(0, 2):
                 for x in range(-1, 1):
                     self.set(vx + x, vy + y, Map.VILLAGE)
@@ -865,12 +889,12 @@ class Map():
 
         return len(flooded_villages)
 
-    def add_objects(self, object_type):
+    def add_objects(self, object_type, count : int = 20):
 
         if object_type not in Map.VALID_OBJECTS:
             raise Exception("Trying to add invalid object type {0} to the map!".format(object_type))
 
-        for i in range(0,20):
+        for i in range(0,count):
             x = random.randint(Map.DAM_X + 2, Map.MOUNTAIN_X - 2)
             y = random.randint(3, self.height - 1)
             if self.get(x,y) is None:

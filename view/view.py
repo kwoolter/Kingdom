@@ -47,6 +47,9 @@ class ObjectGraphics:
         model.Map.THIEF: "T",
         model.Map.LOCUST:"@",
         model.Map.GRAVE:"+",
+        model.Map.SNOW:"*",
+        model.Map.EARTH:":",
+        model.Map.ICE:"~",
         None: " "
 
     }
@@ -59,6 +62,9 @@ class ObjectGraphics:
         model.Map.THIEF: (Fore.RED, Back.BLACK),
         model.Map.LOCUST: (Fore.GREEN, Back.BLACK),
         model.Map.GRAVE: (Fore.WHITE, Back.BLACK),
+        model.Map.SNOW: (Fore.LIGHTWHITE_EX, Back.BLACK),
+        model.Map.ICE: (Fore.LIGHTCYAN_EX, Back.LIGHTWHITE_EX),
+        model.Map.EARTH: (Fore.RED, Back.LIGHTRED_EX),
         None: (Fore.LIGHTWHITE_EX, Back.BLACK),
     }
 

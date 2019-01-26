@@ -7,7 +7,7 @@ import view
 
 
 class GameCLI(cmd.Cmd):
-    intro = "Welcome to The Kingdom.\nType 'start' to get going!\nType 'help' for a list of commands."
+    intro = "Welcome to The Kingdom - Remastered.\nType 'start' to get going!\nType 'help' for a list of commands."
     prompt = "What next?"
 
     def __init__(self):

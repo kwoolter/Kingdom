@@ -43,6 +43,7 @@ class KingdomStats(StatEngine):
         self.add_stat(DiseaseAttack())
         self.add_stat(FreakWinter())
         self.add_stat(RiceAnnualTithes())
+        self.add_stat(NewVillageCount())
 
         # Add totalers
         self.add_stat(TotalPeopleChanges())
@@ -302,6 +303,43 @@ class RiceAnnualTithes(DerivedStat):
             rice_lost = -1 * tithe_rate * current_population
 
         return int(rice_lost)
+
+class NewVillageCount(DerivedStat):
+
+    NAME = "New Village Count"
+    DESCRIPTION = "A new village had been constructed!"
+
+    # When does the event kick in during the game?
+    SEASON_LEVEL = 1
+
+    # How often does this event occur in years?
+    SEASON_FREQUENCY = 12
+
+    def __init__(self):
+
+        super(NewVillageCount, self).__init__(NewVillageCount.NAME,
+                                             "OUTPUT",
+                                             description=NewVillageCount.DESCRIPTION)
+
+        self.add_dependency(KingdomStats.INPUT_SEASON_COUNT)
+        self.add_dependency(KingdomStats.INPUT_VILLAGE_COUNT)
+
+    def calculate(self):
+
+        season_count = self.get_dependency_value(KingdomStats.INPUT_SEASON_COUNT)
+        village_count = self.get_dependency_value(KingdomStats.INPUT_VILLAGE_COUNT)
+
+        # Only calculate if the event timing matches
+        if season_count >= NewVillageCount.SEASON_FREQUENCY and \
+                season_count % NewVillageCount.SEASON_FREQUENCY == 0:
+
+            new_village_count = village_count + 1
+
+        else:
+            new_village_count = village_count
+
+        return int(new_village_count)
+
 
 class TotalPeopleChanges(DerivedStat):
 
