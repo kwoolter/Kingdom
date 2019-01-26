@@ -109,7 +109,7 @@ class LocustFoodAttack(DerivedStat):
     NAME = "Locust Attack Food"
     DESCRIPTION = "A plague of locusts swarms across the Kingdom."
 
-    FOOD_LEVEL = 2000
+    FOOD_LEVEL = 2200
     SEASON_LEVEL = 4
 
     def __init__(self):
@@ -143,9 +143,9 @@ class LocustFoodAttack(DerivedStat):
             if current_season == CurrentSeason.WINTER:
                 food_lost = 0
             elif current_season == CurrentSeason.GROWING:
-                food_lost *= random.uniform(0, 2) / 2
+                food_lost *= random.uniform(1, 3) / 10
             elif current_season == CurrentSeason.HARVESTING:
-                food_lost *= random.uniform(0, 3) / 3
+                food_lost *= random.uniform(2, 4) / 10
 
         return int(food_lost)
 
@@ -155,7 +155,7 @@ class DiseaseAttack(DerivedStat):
     NAME = "Disease Attack"
     DESCRIPTION = "Overcrowding in the villages spreads a fatal disease!"
 
-    PEOPLE_LEVEL = 150
+    PEOPLE_LEVEL = 120
     SEASON_LEVEL = 4
 
     def __init__(self):
@@ -186,11 +186,11 @@ class DiseaseAttack(DerivedStat):
             people_lost = over_capacity * random.randint(0, village_count) / village_count
 
             if current_season == CurrentSeason.WINTER:
-                people_lost *= random.uniform(0, 1)
+                people_lost *= random.uniform(1, 2) / 10
             elif current_season == CurrentSeason.GROWING:
-                people_lost *= random.uniform(0, 2) / 2
+                people_lost *= random.uniform(1, 3) / 10
             elif current_season == CurrentSeason.HARVESTING:
-                people_lost *= random.uniform(0, 3) / 3
+                people_lost *= random.uniform(2, 4) / 10
 
         return int(people_lost)
 
@@ -201,10 +201,10 @@ class FreakWinter(DerivedStat):
     DESCRIPTION = "A long and harsh winter descends on the Kingdom."
 
     # How often does this event occur in years?
-    YEAR_FREQUENCY = 1
+    YEAR_FREQUENCY = 3
 
     # When does the event kick in during the game?
-    SEASON_LEVEL = 0
+    SEASON_LEVEL = 1
 
     def __init__(self):
 
@@ -224,7 +224,7 @@ class FreakWinter(DerivedStat):
 
         # Only calculate if it is winter and the event occurs this year...
         if current_season == CurrentSeason.WINTER and current_year % FreakWinter.YEAR_FREQUENCY == 0:
-            people_lost = -1 * current_population * random.uniform(0, 2) / 10
+            people_lost = -1 * current_population * random.uniform(2, 4) / 10
 
         return int(people_lost)
 
@@ -234,10 +234,10 @@ class HarvestDrought(DerivedStat):
     DESCRIPTION = "Barely any rain falls during the Harvest season."
 
     # How often does this event occur in years?
-    YEAR_FREQUENCY = 1
+    YEAR_FREQUENCY = 3
 
     # When does the event kick in during the game?
-    SEASON_LEVEL = 0
+    SEASON_LEVEL = 4
 
     def __init__(self):
 
@@ -261,7 +261,7 @@ class HarvestDrought(DerivedStat):
 
         # Only calculate if it is harvest time and the event occurs this year...
         if current_season == CurrentSeason.HARVESTING and current_year % HarvestDrought.YEAR_FREQUENCY == 0:
-            rice_lost = -1 * rice_planted * random.uniform(0, 2) / 10
+            rice_lost = -1 * rice_planted * random.uniform(2, 4) / 10
 
         return int(rice_lost)
 

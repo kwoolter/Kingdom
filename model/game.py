@@ -474,7 +474,6 @@ class Season():
         # Calculate how much rice is harvested based on how much planted and resources
         elif self.name == Season.HARVEST:
             rice_grown = int(18 * (11 + random.uniform(0, 3)) * (0.05 - 1 / self.fields) * self.rice_planted)
-            self.rice_planted = 0
             self.food_changes[Season.RICE_GROWN] = rice_grown
             self.kingdom.add_event(Event("RICE HARVESTED",
                                          "{0} baskets of rice have been harvested".format(rice_grown),
@@ -688,7 +687,7 @@ class Kingdom():
             self._stats.update_stat(KingdomStats.INPUT_PEOPLE_VILLAGES, self.current_season.defend)
             self._stats.update_stat(KingdomStats.INPUT_PEOPLE_DYKE, self.current_season.dyke)
             self._stats.update_stat(KingdomStats.INPUT_PEOPLE_FIELDS, self.current_season.fields)
-            self._stats.update_stat(KingdomStats.INPUT_RICE_TO_PLANT, self.current_season.rice_planted)
+            self._stats.update_stat(KingdomStats.INPUT_RICE_TO_PLANT, self.rice_planted)
 
 
         self._stats.print()
