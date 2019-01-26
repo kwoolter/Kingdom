@@ -193,8 +193,7 @@ class GameCLI(cmd.Cmd):
             print(" * " + str(event))
 
             # See if it is time for a ritual...?
-            if event.name == model.Kingdom.EVENT_RITUAL:
-                print("ritual")
+            if self.model.state != model.Game.STATE_GAME_OVER and event.name == model.Kingdom.EVENT_RITUAL:
                 ritual = True
 
             event = self.model.get_next_event()

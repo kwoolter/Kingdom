@@ -692,7 +692,7 @@ class Kingdom():
 
         self._stats.print()
 
-        self.map.add_objects(Map.EARTH, 50)
+        #self.map.add_objects(Map.EARTH, 50)
 
         population_changes = self._stats.get_stat(TotalPeopleChanges.NAME).value
         food_changes = self._stats.get_stat(TotalFoodChanges.NAME).value
@@ -718,8 +718,8 @@ class Kingdom():
                 if event.value != 0:
 
                     if event.name == FreakWinter.NAME:
-                        self.map.add_objects(Map.SNOW, 50)
-                        self.map.add_objects(Map.ICE, 50)
+                        self.map.add_objects(Map.SNOW, 100)
+                        self.map.add_objects(Map.ICE, 100)
 
                     self.add_event(Event(event.name,
                                          event.description + "{0} people changes".format(event.value),
