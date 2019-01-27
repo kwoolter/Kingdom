@@ -37,7 +37,6 @@ class GameCLI(cmd.Cmd):
         except Exception as err:
             print(str(err))
 
-
     def do_hst(self, args):
         """ Print the high score tables"""
 
@@ -96,10 +95,9 @@ class GameCLI(cmd.Cmd):
         """Print the game instructions"""
 
         try:
-           self.view.print_instructions()
+            self.view.print_instructions()
         except Exception as err:
             print(str(err))
-
 
     def do_play(self, args):
         """Play the next round of the game"""
@@ -108,112 +106,108 @@ class GameCLI(cmd.Cmd):
 
         try:
 
-            pass
+            if self.model.state == model.Game.STATE_GAME_OVER:
+                raise Exception("Can't play as Game is Over!")
+
+            # Print the current state
+            self.view.print_census()
+
+            # Get the next round of decisions
+            print("\nHow many people should:")
+
+            # Get how many people should defend the dyke
+            loop = True
+            while loop is True:
+                dyke = is_numeric(input("Defend the dyke?"))
+                if dyke is None:
+                    print("Not a valid number.  Please re-enter.")
+                else:
+                    dyke = int(dyke)
+
+                    if dyke <= self.model.kingdom.population:
+                        loop = False
+                    else:
+                        print("You don't have enough people!")
+
+            # Get how many people should work in the fields if you have not assigned them all to teh dyke!
+            loop = (self.model.kingdom.population - dyke) > 0
+            if loop is False:
+                fields = 0
+                print("Work in the fields? 0")
+
+            while loop is True:
+                fields = is_numeric(input("Work in the fields?"))
+                if fields is None:
+                    print("Not a valid number.  Please re-enter.")
+                else:
+                    fields = int(fields)
+                    if (self.model.kingdom.population - dyke - fields) >= 0:
+                        loop = False
+                    else:
+                        print("You don't have enough people!")
+
+            # Auto calculate number of defenders
+            defend = int(self.model.kingdom.population - dyke - fields)
+            print("Defend the villages? {0}".format(defend))
+
+            # Extra input for the growing season
+            if self.model.kingdom.current_season.name == model.Season.GROWING:
+                loop = True
+                while loop is True:
+                    rice_planted = is_numeric(input("Baskets of rice to plant?"))
+                    if rice_planted is None:
+                        print("Not a valid number.  Please re-enter.")
+                    else:
+                        rice_planted = int(rice_planted)
+                        if rice_planted <= self.model.kingdom.total_food:
+                            loop = False
+                        else:
+                            print("You don't have that much food to plant!")
+            else:
+                rice_planted = 0
+
+            # Run the model with the inputted resources
+            self.model.play(dyke, fields, defend, rice_planted)
+
+            # Print the season results
+            self.view.print_season()
+
+            # Print the map
+            self.view.print_map()
+
+            ritual = False
+
+            # Print any events that got raised
+            event = self.model.get_next_event()
+            if event is not None:
+                print("\nGame event(s)...")
+
+            while event is not None:
+
+                print(" * " + str(event))
+
+                # See if it is time for a ritual...?
+                if self.model.state != model.Game.STATE_GAME_OVER and event.name == model.Kingdom.EVENT_RITUAL:
+                    ritual = True
+
+                event = self.model.get_next_event()
+
+            # If it is time for a ritual then run the ritual
+            if ritual is True:
+                self.view.print_ritual()
+                self.do_quit("")
+
+            print("")
 
         except Exception as err:
             print(str(err))
-
-        if self.model.state == model.Game.STATE_GAME_OVER:
-            raise Exception("Can't play as Game is Over!")
-
-        # Print the current state
-        self.view.print_census()
-
-        # Get the next round of decisions
-        print("\nHow many people should:")
-
-        # Get how many people should defend the dyke
-        loop = True
-        while loop is True:
-            dyke = is_numeric(input("Defend the dyke?"))
-            if dyke is None:
-                print("Not a valid number.  Please re-enter.")
-            else:
-                dyke = int(dyke)
-
-                if dyke <= self.model.kingdom.population:
-                    loop = False
-                else:
-                    print("You don't have enough people!")
-
-        # Get how many people should work in the fields if you have not assigned them all to teh dyke!
-        loop = (self.model.kingdom.population - dyke) > 0
-        if loop is False:
-            fields = 0
-            print("Work in the fields? 0")
-
-        while loop is True:
-            fields = is_numeric(input("Work in the fields?"))
-            if fields is None:
-                print("Not a valid number.  Please re-enter.")
-            else:
-                fields = int(fields)
-                if (self.model.kingdom.population - dyke - fields) >= 0:
-                    loop = False
-                else:
-                    print("You don't have enough people!")
-
-        # Auto calculate number of defenders
-        defend = int(self.model.kingdom.population - dyke - fields)
-        print("Defend the villages? {0}".format(defend))
-
-        # Extra input for the growing season
-        if self.model.kingdom.current_season.name == model.Season.GROWING:
-            loop = True
-            while loop is True:
-                rice_planted = is_numeric(input("Baskets of rice to plant?"))
-                if rice_planted is None:
-                    print("Not a valid number.  Please re-enter.")
-                else:
-                    rice_planted = int(rice_planted)
-                    if rice_planted <= self.model.kingdom.total_food:
-                        loop = False
-                    else:
-                        print("You don't have that much food to plant!")
-        else:
-            rice_planted = 0
-
-        # Run the model with the inputted resources
-        self.model.play(dyke, fields, defend, rice_planted)
-
-        # Print the season results
-        self.view.print_season()
-
-        # Print the map
-        self.view.print_map()
-
-        ritual = False
-
-        # Print any events that got raised
-        event = self.model.get_next_event()
-        if event is not None:
-            print("\nGame event(s)...")
-
-        while event is not None:
-            print(" * " + str(event))
-
-            # See if it is time for a ritual...?
-            if self.model.state != model.Game.STATE_GAME_OVER and event.name == model.Kingdom.EVENT_RITUAL:
-                ritual = True
-
-            event = self.model.get_next_event()
-
-        # If it is time for a ritual then run the ritual
-        if ritual is True:
-            self.view.print_ritual()
-            self.do_quit("")
-
-        print("")
-
-        # except Exception as err:
-        #     print(str(err))
-
 
     def do_stats(self, args):
 
         self.model.kingdom.update_stats()
 
         self.model._stats.print()
+
 
 # Function to ask the user a simple Yes/No confirmation and return a boolean
 def confirm(question: str):
