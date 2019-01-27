@@ -18,9 +18,24 @@ Python version of the old BBC Micro game 'Yellow River Kingdom' (aka 'Kingdom') 
 
 ## Python Version
 
-This Python re-write is radically different in structure to the original!  It is a total re-write! More to follow on this.
-* Uses `colorama` package to make the text output more exciting.
-* **REMASTERED** New bonus content added not available in the original game.
+### Classic Version
+The *Classic* version uses the model-view-controller paradigm to structure the application as follows:-
+* Model - main game logic for the Kingdom, each season and the map
+* View - draw the status screens and the map using `colorama` module to add colours
+* Controller - process user input and control the view and model accordingly
+
+There is also an event queue for the model to pass events to the control for processing.
+
+### Remastered Content
+The remastered content uses a stats engine to calculate if new events have been triggered based on the current status of the game.  
+The `StatEngine` class provides a framework for creating core stats and stats that are derived from core stats or from other derived stats.
+Whenever a stat changes all other stats that are dependent on the changed stat are automatically told to recalculate and are up to date in real-time.
+The remastered content in `game-stats.py` is essentially a bunch of calculations to see if an event triggers and what the impact of the event is.  
+New events can be easily added, are easy to tweak and don't impact the rest of the game logic.
+The `StatEngine` class is also used here (https://github.com/kwoolter/TRPGFramework) to track player stats in a text based adventure game. 
+A java version is used here (https://github.com/kwoolter/DnDCharacterGen) to calculate DnD stats.
+This is a different approach to the *Classic* implementation which uses rules based code in the `Season.calculate()` method.
+
 
 ## BBC Micro Version
 

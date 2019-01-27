@@ -1,9 +1,9 @@
 import random
+
 from .StatEngine import *
 
 
 class KingdomStats(StatEngine):
-
     # Kindgom level inputs
     INPUT_SEASON_COUNT = "Season Count"
     INPUT_CURRENT_POPULATION = "Current Population"
@@ -25,7 +25,6 @@ class KingdomStats(StatEngine):
         super(KingdomStats, self).__init__("Kingdom")
 
     def initialise(self):
-
         # Add the core input stats
         for core_stat_name in KingdomStats.INPUTS:
             self.add_stat(CoreStat(core_stat_name, "INPUTS", 0))
@@ -222,21 +221,19 @@ class FreakWinter(DerivedStat):
 
 
 class BabyBoom(DerivedStat):
-
     NAME = "Baby Boom"
     DESCRIPTION = "The villagers are blessed record new births."
 
     # How often does this event occur in years?
-    YEAR_FREQUENCY = 1
+    YEAR_FREQUENCY = 2
 
     # When does the event kick in during the game?
-    SEASON_LEVEL = 1
+    SEASON_LEVEL = 4
 
     # How much food needs to be available?
-    FOOD_PER_PERSON_THRESHOLD = 8
+    FOOD_PER_PERSON_THRESHOLD = 20
 
     def __init__(self):
-
         super(BabyBoom, self).__init__(BabyBoom.NAME, "OUTPUT", description=BabyBoom.DESCRIPTION)
 
         self.add_dependency(CurrentSeason.NAME)
@@ -245,7 +242,6 @@ class BabyBoom(DerivedStat):
         self.add_dependency(FoodPerPerson.NAME)
 
     def calculate(self):
-
         current_season = self.get_dependency_value(CurrentSeason.NAME)
         current_year = self.get_dependency_value(CurrentYear.NAME)
         current_population = self.get_dependency_value(KingdomStats.INPUT_CURRENT_POPULATION)
@@ -257,8 +253,7 @@ class BabyBoom(DerivedStat):
         if current_season == CurrentSeason.HARVESTING and \
                 current_year % BabyBoom.YEAR_FREQUENCY == 0 and \
                 food_per_person >= BabyBoom.FOOD_PER_PERSON_THRESHOLD:
-
-            people_gained = current_population * random.uniform(2, 4) / 100
+            people_gained = current_population * random.uniform(4, 10) / 100
 
         return int(people_gained)
 
@@ -379,11 +374,11 @@ class NewVillageBuilt(DerivedStat):
 
 
 class VillageDereliction(DerivedStat):
-    NAME = "Village Dereliction Count"
+    NAME = "Village Dereliction"
     DESCRIPTION = "An unmaintained village has fallen derelict!"
 
     # When does the event kick in during the game?
-    SEASON_LEVEL = 0
+    SEASON_LEVEL = 6
 
     # How often does this event occur in seasons?
     SEASON_FREQUENCY = 6
@@ -447,7 +442,6 @@ class TotalPeopleChanges(DerivedStat):
 
 
 class TotalFoodChanges(DerivedStat):
-
     NAME = "Total Food Changes"
 
     # Season outputs - food
@@ -471,7 +465,6 @@ class TotalFoodChanges(DerivedStat):
 
 
 class TotalVillageChanges(DerivedStat):
-
     NAME = "Total Village Changes"
 
     # Season outputs
@@ -495,7 +488,6 @@ class TotalVillageChanges(DerivedStat):
 
 
 class CurrentYear(DerivedStat):
-
     NAME = "Current Year"
 
     SEASONS_PER_YEAR = 3
@@ -512,7 +504,6 @@ class CurrentYear(DerivedStat):
 
 
 class CurrentSeason(DerivedStat):
-
     NAME = "Current Season"
 
     WINTER = 1
