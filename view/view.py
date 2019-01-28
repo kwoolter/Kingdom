@@ -286,7 +286,7 @@ class MapView():
     def print(self):
 
         header = Fore.LIGHTYELLOW_EX + Back.BLACK + \
-                 "{0:^" + str(self.map.width) + "}" + Back.BLACK
+                 "\n{0:^" + str(self.map.width) + "}" + Back.BLACK
 
         print(header.format("Yellow River Kingdom"))
 

@@ -140,7 +140,7 @@ class LocustFoodAttack(DerivedStat):
             elif current_season == CurrentSeason.GROWING:
                 food_lost *= random.uniform(1, 3) / 10
             elif current_season == CurrentSeason.HARVESTING:
-                food_lost *= random.uniform(2, 4) / 10
+                food_lost *= random.uniform(2, 3) / 10
 
         return int(food_lost)
 

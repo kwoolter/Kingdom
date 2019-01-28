@@ -149,12 +149,14 @@ class Game():
 
         # If the game was actually started then update HSTs
         if self.state == Game.STATE_INITIALISED:
-            self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
-            self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
-            self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
+            added1 = self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
+            added2 = self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
+            added3 = self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
 
         # Set state to Game Over
         self.state = Game.STATE_GAME_OVER
+
+        return added1 or added2 or added3
 
     def print_high_scores(self):
         self.hst_length_of_rule.print()
@@ -335,7 +337,7 @@ class Season():
 
             if villages_flooded != 0:
                 self.kingdom.add_event(Event("VILLAGE FLOODED",
-                                             "{0} villages flooded".format(villages_flooded),
+                                             "{0} of the villages flooded".format(villages_flooded),
                                              Event.GAME))
 
             # Calculate flood impact on population
@@ -581,7 +583,6 @@ class Kingdom():
 
     def do_remastered_events(self):
 
-        print("Updating stats...")
         self._stats.update_stat(KingdomStats.INPUT_SEASON_COUNT, self.seasons)
         self._stats.update_stat(KingdomStats.INPUT_CURRENT_POPULATION, self.population)
         self._stats.update_stat(KingdomStats.INPUT_CURRENT_FOOD, self.total_food)
@@ -594,7 +595,7 @@ class Kingdom():
             self._stats.update_stat(KingdomStats.INPUT_PEOPLE_FIELDS, self.current_season.fields)
             self._stats.update_stat(KingdomStats.INPUT_RICE_TO_PLANT, self.rice_planted)
 
-        self._stats.print()
+        #self._stats.print()
 
         # self.map.add_objects(Map.EARTH, 50)
 
@@ -651,9 +652,9 @@ class Kingdom():
 
     def __str__(self):
 
-        _str = "{0}: {2} season or year {1}, population={3:,}, food={4:,}".format(self.name,
+        _str = "{0}: {2} season of year {1}, population={3:,}, food={4:,}".format(self.name,
                                                                                   self.year,
-                                                                                  self.current_season,
+                                                                                  self.current_season.name,
                                                                                   self.population,
                                                                                   self.total_food)
 

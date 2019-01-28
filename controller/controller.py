@@ -54,7 +54,9 @@ class GameCLI(cmd.Cmd):
             if confirm("Are you sure you want to quit?") is True:
                 print("\nThanks for playing.")
                 print(str(self.model))
-                self.model.do_game_over()
+                is_high_score = self.model.do_game_over()
+                if is_high_score is True:
+                    print("\nYou go into the high score table!")
                 print("\nBye bye...")
                 exit(0)
 
@@ -172,15 +174,12 @@ class GameCLI(cmd.Cmd):
             # Print the season results
             self.view.print_season()
 
-            # Print the map
-            self.view.print_map()
-
-            ritual = False
-
             # Print any events that got raised
             event = self.model.get_next_event()
             if event is not None:
-                print("\nGame event(s)...")
+                print("Game event(s)...")
+
+            ritual = False
 
             while event is not None:
 
@@ -191,6 +190,9 @@ class GameCLI(cmd.Cmd):
                     ritual = True
 
                 event = self.model.get_next_event()
+
+            # Print the map
+            self.view.print_map()
 
             # If it is time for a ritual then run the ritual
             if ritual is True:
