@@ -56,9 +56,9 @@ class GameCLI(cmd.Cmd):
                 print(str(self.model))
                 is_high_score = self.model.do_game_over()
                 if is_high_score is True:
-                    print("\nYou go into the high score table!")
-                print("\nBye bye...")
-                exit(0)
+                    print("\nYou got into the high score table!")
+                print("\nBye bye.")
+                #exit(0)
 
         except Exception as err:
             print(str(err))
@@ -109,7 +109,7 @@ class GameCLI(cmd.Cmd):
         try:
 
             if self.model.state == model.Game.STATE_GAME_OVER:
-                raise Exception("Can't play as Game is Over!")
+                raise Exception("Can't play as Game is Over!  You need to start again.")
 
             # Print the current state
             self.view.print_census()

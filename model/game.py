@@ -147,16 +147,19 @@ class Game():
 
     def do_game_over(self):
 
+        added = False
+
         # If the game was actually started then update HSTs
         if self.state == Game.STATE_INITIALISED:
             added1 = self.hst_population.add(self.player_name, self.kingdom._population_hwm, auto_save=Game.HST_AUTO_SAVE)
             added2 = self.hst_total_food.add(self.player_name, self.kingdom._total_food_hwm, auto_save=Game.HST_AUTO_SAVE)
             added3 = self.hst_length_of_rule.add(self.player_name, self.kingdom.seasons, auto_save=Game.HST_AUTO_SAVE)
+            added = added1 or added2 or added3
 
         # Set state to Game Over
         self.state = Game.STATE_GAME_OVER
 
-        return added1 or added2 or added3
+        return added
 
     def print_high_scores(self):
         self.hst_length_of_rule.print()
