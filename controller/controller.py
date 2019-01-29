@@ -205,8 +205,7 @@ class GameCLI(cmd.Cmd):
             print(str(err))
 
     def do_stats(self, args):
-
-        self.model.kingdom.update_stats()
+        """ Print the contents of the stat engine for debugging purposes """
 
         self.model._stats.print()
 
